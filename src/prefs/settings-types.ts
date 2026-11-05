@@ -416,7 +416,10 @@ export const DEFAULT_SETTINGS: Settings = {
   zenMode: false,
   contentWidth: "auto",
   imageAlign: "center",
-  menuBarShown: false,
+  // Windows and Linux draw the window frame, so File / Edit / View / Help
+  // sit along its top like a native menu bar. The ☰ behind a click is still
+  // there in Settings for anyone who wants the row back.
+  menuBarShown: true,
   autoCloseMarks: true,
   autoCloseBrackets: true,
   plainTextMenu: false,

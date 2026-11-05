@@ -2,14 +2,15 @@ import { expect, test } from "@playwright/test";
 import { mockInvoke, openApp, pasteMarkdown } from "./helpers";
 
 /**
- * The menu bar, where the app draws the window frame (Windows and Linux): off
- * by default, on from Settings; each title opens its list, the pointer or
- * ← / → moves between them, and the ☰ returns in a window too narrow.
+ * The menu bar, where the app draws the window frame (Windows and Linux): on
+ * by default in the app, pinned off in these specs so the ☰ flows still run;
+ * each title opens its list, the pointer or ← / → moves between them, and the
+ * ☰ returns in a window too narrow.
  */
 
 const bar = '[role="menubar"]';
 
-test("off by default: the ☰ and the sidebar's button", async ({ page }) => {
+test("with the bar off: the ☰ and the sidebar's button", async ({ page }) => {
   await openApp(page, { settings: { language: "en" } });
   await expect(page.locator(".window-menu-button")).toBeVisible();
   await expect(
