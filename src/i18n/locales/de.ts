@@ -619,6 +619,7 @@ Skills liegen im Ordner skills/ neben dieser Datei, je Skill eine
   settingsHelpGroup: "Hilfe",
   navGeneral: "Allgemein",
   navEditor: "Editor & Design",
+  navExport: "Export",
   navTheme: "Design",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -970,6 +971,9 @@ Skills liegen im Ordner skills/ neben dieser Datei, je Skill eine
   autoCloseBracketsLabel: "(), [] und „“ schließen",
   plainTextMenuLabel: "Als reinen Text kopieren/einfügen im Kontextmenü",
   pdfPageNumbersLabel: "Seitenzahlen beim Exportieren anzeigen",
+  exportTabGeneral: "Allgemein",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "Custom pandoc arguments",
   pandocExtraArgsHelp:
     "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",

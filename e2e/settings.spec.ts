@@ -12,6 +12,11 @@ const t = {
   windowClose: "Close",
   navGeneral: "General",
   navEditor: "Editor & Appearance",
+  navExport: "Export",
+  exportTabGeneral: "General",
+  exportTabDocx: "docx",
+  pandocExtraArgsLabel: "Custom pandoc arguments",
+  pandocReferenceDocLabel: "Style template",
   navAi: AI_NAME,
   navExtensions: "Extensions",
   navShortcuts: "Shortcuts",
@@ -105,15 +110,42 @@ async function openSettings(page: Page) {
 }
 
 test.describe("desktop", () => {
+  test("Export sits beside Editor & Appearance: General is empty, docx holds the pandoc rows", async ({
+    page,
+  }) => {
+    await openApp(page, { settings: { language: "en" } });
+    const panel = await openSettings(page);
+    await panel.getByRole("button", { name: t.navExport, exact: true }).click();
+    const tabs = panel.getByRole("tab");
+    await expect(tabs).toHaveText([t.exportTabGeneral, t.exportTabDocx]);
+    // docx is the only tab with rows, so it is the one that opens.
+    await expect(panel.getByRole("tabpanel")).toHaveAttribute(
+      "aria-label",
+      t.exportTabDocx,
+    );
+    await expect(
+      panel.getByRole("textbox", { name: t.pandocExtraArgsLabel }),
+    ).toBeVisible();
+    await expect(
+      panel.getByRole("textbox", { name: t.pandocReferenceDocLabel }),
+    ).toBeVisible();
+    await tabs.first().click();
+    await expect(panel.getByRole("tabpanel")).toBeEmpty();
+    await expect(
+      panel.getByRole("textbox", { name: t.pandocExtraArgsLabel }),
+    ).toHaveCount(0);
+  });
+
   test("the AI page connects first, then lists each feature with its model; the chat off hides the two groups below it", async ({
     page,
   }) => {
     await openApp(page, { settings: { language: "en" } });
     const panel = await openSettings(page);
-    // Six categories, plugins among them.
+    // Seven categories, plugins among them.
     await expect(panel.locator(".settings-nav-item")).toHaveText([
       t.navGeneral,
       t.navEditor,
+      t.navExport,
       t.navAi,
       t.navExtensions,
       t.navShortcuts,

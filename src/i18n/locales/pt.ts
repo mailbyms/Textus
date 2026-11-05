@@ -614,6 +614,7 @@ Habilidades ficam na pasta skills/ ao lado deste arquivo, um arquivo
   settingsHelpGroup: "Ajuda",
   navGeneral: "Geral",
   navEditor: "Editor e aparência",
+  navExport: "Exportar",
   navTheme: "Tema",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -964,6 +965,9 @@ Habilidades ficam na pasta skills/ ao lado deste arquivo, um arquivo
   autoCloseBracketsLabel: "Fechar (), [] e “”",
   plainTextMenuLabel: "Copiar/colar como texto simples no menu de contexto",
   pdfPageNumbersLabel: "Mostrar números de página ao exportar",
+  exportTabGeneral: "Geral",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "Custom pandoc arguments",
   pandocExtraArgsHelp:
     "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",

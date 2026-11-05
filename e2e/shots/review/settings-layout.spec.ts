@@ -15,6 +15,8 @@ const CATEGORY_IDS: Record<string, string> = {
   通用: "general",
   "Editor & Appearance": "editor",
   编辑与外观: "editor",
+  Export: "export",
+  导出: "export",
   "Textus AI": "ai",
   Shortcuts: "shortcuts",
   快捷键: "shortcuts",

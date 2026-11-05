@@ -561,6 +561,7 @@ export default {
   settingsHelpGroup: "說明",
   navGeneral: "一般",
   navEditor: "編輯器與外觀",
+  navExport: "匯出",
   navTheme: "主題",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -883,6 +884,9 @@ export default {
   autoCloseBracketsLabel: "補全 ()、[] 和 「」",
   plainTextMenuLabel: "右鍵選單顯示純文字複製貼上",
   pdfPageNumbersLabel: "匯出時顯示頁碼",
+  exportTabGeneral: "一般",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "自訂參數",
   pandocExtraArgsHelp:
     "附加到 Pandoc 匯出命令的額外參數，例如 --toc --number-sections。輸入格式、輸出格式與儲存路徑由應用程式固定，無法覆寫。",

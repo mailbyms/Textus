@@ -629,6 +629,7 @@ para usar una.
   settingsHelpGroup: "Ayuda",
   navGeneral: "General",
   navEditor: "Editor y aspecto",
+  navExport: "Exportar",
   navTheme: "Tema",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -982,6 +983,9 @@ para usar una.
   autoCloseBracketsLabel: "Cerrar (), [] y «»",
   plainTextMenuLabel: "Copiar y pegar sin formato en el menú contextual",
   pdfPageNumbersLabel: "Mostrar números de página al exportar",
+  exportTabGeneral: "General",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "Custom pandoc arguments",
   pandocExtraArgsHelp:
     "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",

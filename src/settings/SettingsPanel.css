@@ -798,6 +798,16 @@ button.settings-inline-button {
   box-shadow: none;
 }
 
+/* Settings › Export: the writer tabs above their rows. General has no rows
+   yet, so keep a little height when it is the selected one. */
+.export-tabs {
+  margin-bottom: 12px;
+}
+
+.export-tab-panel {
+  min-height: 96px;
+}
+
 /* ---- Label + control rows that aren't toggle rows ---- */
 
 .settings-field {

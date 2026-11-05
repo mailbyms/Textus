@@ -609,6 +609,7 @@ type /name in a conversation to use one.
   settingsHelpGroup: "Help",
   navGeneral: "General",
   navEditor: "Editor & Appearance",
+  navExport: "Export",
   navTheme: "Theme",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -947,6 +948,9 @@ type /name in a conversation to use one.
   autoCloseBracketsLabel: "Close (), [] and “”",
   plainTextMenuLabel: "Plain text copy and paste in the right-click menu",
   pdfPageNumbersLabel: "Show page numbers in exports",
+  exportTabGeneral: "General",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "Custom pandoc arguments",
   pandocExtraArgsHelp:
     "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",

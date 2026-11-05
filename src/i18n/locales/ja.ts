@@ -597,6 +597,7 @@ ${AI_NAME}への執筆の指示です。すべての文書に適用されます�
   settingsHelpGroup: "ヘルプ",
   navGeneral: "一般",
   navEditor: "編集と外観",
+  navExport: "書き出し",
   navTheme: "テーマ",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -932,6 +933,9 @@ ${AI_NAME}への執筆の指示です。すべての文書に適用されます�
   autoCloseBracketsLabel: "()、[]、「」を補完",
   plainTextMenuLabel: "右クリックメニューにプレーンテキストでコピー/ペースト",
   pdfPageNumbersLabel: "書き出し時にページ番号を表示",
+  exportTabGeneral: "一般",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "Custom pandoc arguments",
   pandocExtraArgsHelp:
     "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",

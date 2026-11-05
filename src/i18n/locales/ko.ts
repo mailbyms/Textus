@@ -589,6 +589,7 @@ ${AI_NAME}에게 주는 글쓰기 지침으로, 모든 문서에 적용됩니다
   settingsHelpGroup: "도움말",
   navGeneral: "일반",
   navEditor: "편집기 및 모양",
+  navExport: "내보내기",
   navTheme: "테마",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -921,6 +922,9 @@ ${AI_NAME}에게 주는 글쓰기 지침으로, 모든 문서에 적용됩니다
   autoCloseBracketsLabel: "(), [], “” 짝 맞추기",
   plainTextMenuLabel: "오른쪽 클릭 메뉴에 일반 텍스트로 복사/붙여넣기",
   pdfPageNumbersLabel: "내보낼 때 쪽 번호 표시",
+  exportTabGeneral: "일반",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "Custom pandoc arguments",
   pandocExtraArgsHelp:
     "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",

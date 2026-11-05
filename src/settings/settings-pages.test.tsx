@@ -12,6 +12,7 @@ describe("the Settings pages", () => {
     expect(settingsPages().map((p) => p.label(t))).toEqual([
       "General",
       "Editor & Appearance",
+      "Export",
       "Textus AI",
       "Extensions",
       "Shortcuts",

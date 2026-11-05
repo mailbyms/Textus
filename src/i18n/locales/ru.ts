@@ -620,6 +620,7 @@ export default {
   settingsHelpGroup: "Справка",
   navGeneral: "Основные",
   navEditor: "Редактор и оформление",
+  navExport: "Экспорт",
   navTheme: "Тема",
   navMarkdown: "Markdown",
   navAi: AI_NAME,
@@ -976,6 +977,9 @@ export default {
   autoCloseBracketsLabel: "Закрывать (), [] и «»",
   plainTextMenuLabel: "Копировать/вставить как текст в контекстном меню",
   pdfPageNumbersLabel: "Показывать номера страниц при экспорте",
+  exportTabGeneral: "Общие",
+  exportTabDocx: "docx",
+  exportDocxGroup: "Word (.docx)",
   pandocExtraArgsLabel: "Custom pandoc arguments",
   pandocExtraArgsHelp:
     "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",

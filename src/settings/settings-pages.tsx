@@ -1,8 +1,13 @@
 import type { ComponentType } from "react";
 import type { Strings } from "../i18n/strings";
-import { hasTextusAi, isIOSApp } from "../platform/capabilities";
+import {
+  canExportWithPandoc,
+  hasTextusAi,
+  isIOSApp,
+} from "../platform/capabilities";
 import { AiPage } from "./pages/AiPage";
 import { EditorPage } from "./pages/EditorPage";
+import { ExportPage } from "./pages/ExportPage";
 import { GeneralPage } from "./pages/GeneralPage";
 import { ExtensionsPage } from "./pages/ExtensionsPage";
 import { ShortcutsPage } from "./pages/ShortcutsPage";
@@ -22,6 +27,13 @@ export interface SettingsPageDef {
 const BUILT_IN: SettingsPageDef[] = [
   { id: "general", label: (t) => t.navGeneral, Page: GeneralPage },
   { id: "editor", label: (t) => t.navEditor, Page: EditorPage },
+  {
+    id: "export",
+    label: (t) => t.navExport,
+    // A phone can't run pandoc, so it has nothing to configure here.
+    available: () => canExportWithPandoc,
+    Page: ExportPage,
+  },
   {
     id: "ai",
     label: (t) => t.navAi,
