@@ -343,6 +343,10 @@ export interface Settings {
   /** macOS: export PDFs on white in the theme's light colours. Other
    *  platforms always do. */
   pdfLightColors: boolean;
+  /** Extra switches for the user-installed pandoc, as one command line. */
+  pandocExtraArgs: string;
+  /** A --reference-doc template for the pandoc writers that accept one. */
+  pandocReferenceDoc: string;
   /** Which releases the updater offers: "stable", or "beta" for release
    *  candidates as well. */
   updateChannel: UpdateChannel;
@@ -441,6 +445,8 @@ export const DEFAULT_SETTINGS: Settings = {
   autosave: false,
   pdfPageNumbers: false,
   pdfLightColors: false,
+  pandocExtraArgs: "",
+  pandocReferenceDoc: "",
   updateChannel: "stable",
   onboardingShown: false,
   enableChatHistory: true,

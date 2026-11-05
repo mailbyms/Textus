@@ -882,6 +882,13 @@ export default {
   autoCloseBracketsLabel: "补全 ()、[] 和 “”",
   plainTextMenuLabel: "右键菜单显示纯文本复制粘贴",
   pdfPageNumbersLabel: "导出时显示页码",
+  pandocExtraArgsLabel: "自定义参数",
+  pandocExtraArgsHelp:
+    "追加到 Pandoc 导出命令的额外参数，例如 --toc --number-sections。输入格式、输出格式和保存路径由应用固定，不能被覆盖。",
+  pandocReferenceDocLabel: "样式文件",
+  pandocReferenceDocHelp:
+    "一个 .docx、.odt 或 .pptx 模板，Pandoc 会把它里面的样式套用到导出文档。仅 Word 与 ODT 支持，其他格式忽略。",
+  pandocPickTemplate: "选择…",
   pdfLightColorsLabel: "导出 PDF 时使用浅色",
   infoTipLabel: "关于“{label}”的说明",
   infoTipLabelPlain: "说明",

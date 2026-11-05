@@ -244,6 +244,7 @@ export const exportDoc = {
     format: string;
     resourceDir: string | null;
     title: string;
+    extraArgs: string[];
   }) =>
     desktopActionCommand(
       "export_via_pandoc",
@@ -253,7 +254,11 @@ export const exportDoc = {
       args.format,
       args.resourceDir,
       args.title,
+      args.extraArgs,
     ),
+  /** Settings › Export: a --reference-doc template chosen in a file dialog. */
+  pickReferenceDoc: () =>
+    desktopQueryCommand("open_reference_doc_dialog", null),
   openPandocInstallPage: () =>
     desktopQueryCommand("open_pandoc_install_page", undefined),
   /** Nothing to show the file in on iOS; resolves without doing anything. */

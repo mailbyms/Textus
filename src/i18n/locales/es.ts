@@ -982,6 +982,13 @@ para usar una.
   autoCloseBracketsLabel: "Cerrar (), [] y «»",
   plainTextMenuLabel: "Copiar y pegar sin formato en el menú contextual",
   pdfPageNumbersLabel: "Mostrar números de página al exportar",
+  pandocExtraArgsLabel: "Custom pandoc arguments",
+  pandocExtraArgsHelp:
+    "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",
+  pandocReferenceDocLabel: "Style template",
+  pandocReferenceDocHelp:
+    "A .docx, .odt or .pptx whose styles Pandoc copies into the exported document. Word and ODT only; other formats ignore it.",
+  pandocPickTemplate: "Choose…",
   pdfLightColorsLabel: "Exportar PDF con colores claros",
   infoTipLabel: "Más sobre «{label}»",
   infoTipLabelPlain: "Más información",

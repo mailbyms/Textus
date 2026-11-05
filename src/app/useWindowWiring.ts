@@ -154,6 +154,8 @@ export function useWindowWiring({
     t,
     pdfPageNumbers: settings.pdfPageNumbers,
     pdfLightColors: settings.pdfLightColors,
+    pandocExtraArgs: settings.pandocExtraArgs,
+    pandocReferenceDoc: settings.pandocReferenceDoc,
     diagramEngine: settings.diagramEngine,
     onOpenSettings: shell.settingsOpening.openSettings,
     onCheckUpdates: shell.settingsOpening.openUpdates,

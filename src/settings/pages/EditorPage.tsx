@@ -9,7 +9,12 @@ import {
   type DiagramEngine,
 } from "../../prefs/SettingsContext";
 import type { ViewMode } from "../../prefs/settings-types";
-import { AdvancedFold, SettingRow, ToggleRow } from "../sections/controls";
+import {
+  AdvancedFold,
+  SettingRow,
+  ToggleRow,
+  VERBATIM_INPUT,
+} from "../sections/controls";
 import { useSyncExternalStore } from "react";
 import {
   subscribeTracking,
@@ -25,7 +30,8 @@ import { DocTextFold } from "../sections/text-font";
 import { ImageStorageSection } from "../sections/images";
 import { Select } from "../../ui/Select";
 import { appDrawsWindowFrame } from "../../platform/window-chrome";
-import { canExportPdf } from "../../platform/capabilities";
+import { canExportPdf, canExportWithPandoc } from "../../platform/capabilities";
+import { exportDoc } from "../../platform/ipc";
 import { isMacPlatform } from "../../platform/os";
 import { openExtensionsTab } from "./extensions-tab";
 
@@ -198,6 +204,49 @@ export function EditorPage({
               checked={settings.pdfLightColors}
               onChange={(v) => setSettings({ pdfLightColors: v })}
             />
+          )}
+          {canExportWithPandoc && (
+            <>
+              <SettingRow
+                label={t.pandocExtraArgsLabel}
+                help={t.pandocExtraArgsHelp}
+              >
+                <input
+                  className="settings-text-input"
+                  aria-label={t.pandocExtraArgsLabel}
+                  {...VERBATIM_INPUT}
+                  value={settings.pandocExtraArgs}
+                  placeholder="--toc --number-sections"
+                  onChange={(e) =>
+                    setSettings({ pandocExtraArgs: e.target.value })
+                  }
+                />
+              </SettingRow>
+              <SettingRow
+                label={t.pandocReferenceDocLabel}
+                help={t.pandocReferenceDocHelp}
+              >
+                <input
+                  className="settings-text-input"
+                  aria-label={t.pandocReferenceDocLabel}
+                  {...VERBATIM_INPUT}
+                  value={settings.pandocReferenceDoc}
+                  onChange={(e) =>
+                    setSettings({ pandocReferenceDoc: e.target.value })
+                  }
+                />
+                <button
+                  type="button"
+                  className="text-button settings-inline-button"
+                  onClick={async () => {
+                    const picked = await exportDoc.pickReferenceDoc();
+                    if (picked) setSettings({ pandocReferenceDoc: picked });
+                  }}
+                >
+                  {t.pandocPickTemplate}
+                </button>
+              </SettingRow>
+            </>
           )}
         </SettingsGroup>
       )}

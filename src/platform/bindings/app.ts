@@ -178,7 +178,12 @@ export const commands = {
 	 *  Converts the document text to `format` via a user-installed pandoc, through
 	 *  stdin; --resource-path lets relative images resolve.
 	 */
-	export_via_pandoc: (pandocPath: string, markdown: string, outputPath: string, format: string, resourceDir: string | null, title: string) => __TAURI_INVOKE<null>("export_via_pandoc", { pandocPath, markdown, outputPath, format, resourceDir, title }),
+	export_via_pandoc: (pandocPath: string, markdown: string, outputPath: string, format: string, resourceDir: string | null, title: string, extraArgs: string[]) => __TAURI_INVOKE<null>("export_via_pandoc", { pandocPath, markdown, outputPath, format, resourceDir, title, extraArgs }),
+	/**
+	 *  Picks a --reference-doc template (Settings > Export). Word, ODT and
+	 *  PowerPoint templates are the ones pandoc can read.
+	 */
+	open_reference_doc_dialog: () => __TAURI_INVOKE<string | null>("open_reference_doc_dialog"),
 	/**
 	 *  Writes the themed, paginated document to a PDF at `output_path`, offscreen
 	 *  with no print dialog. Same text on every variant: it is the generated TS doc.

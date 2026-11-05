@@ -117,6 +117,7 @@ fn groups() -> Vec<(&'static str, Builder<tauri::Wry>)> {
                 crate::commands::export::export_save_dialog,
                 crate::commands::export::detect_pandoc,
                 crate::commands::export::export_via_pandoc,
+                crate::commands::export::open_reference_doc_dialog,
                 crate::commands::export::export_pdf_native,
                 crate::commands::export::open_pandoc_install_page,
                 crate::commands::export::reveal_in_dir,

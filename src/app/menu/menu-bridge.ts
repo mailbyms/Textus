@@ -38,6 +38,8 @@ export interface MenuBridgeHandlers {
   t: Strings;
   pdfPageNumbers: boolean;
   pdfLightColors: boolean;
+  pandocExtraArgs: string;
+  pandocReferenceDoc: string;
   diagramEngine: DiagramEngine;
   onOpenSettings: () => void;
   /** Textus › Check for Updates…: Settings › About, checking. */
@@ -151,11 +153,12 @@ export function useMenuBridge(handlers: MenuBridgeHandlers): void {
       listenToThisWindow<string>("menu-export-pandoc", (event) => {
         const tab = activeTabNow();
         if (tab)
-          void exporters
-            .load()
-            .then((m) =>
-              m.exportViaPandoc(tab, event.payload, h().t, h().diagramEngine),
-            );
+          void exporters.load().then((m) =>
+            m.exportViaPandoc(tab, event.payload, h().t, h().diagramEngine, {
+              extraArgs: h().pandocExtraArgs,
+              referenceDoc: h().pandocReferenceDoc,
+            }),
+          );
       }),
       listenToThisWindow("menu-toggle-source-mode", () =>
         h().toggleSourceMode(),

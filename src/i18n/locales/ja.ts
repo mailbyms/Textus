@@ -932,6 +932,13 @@ ${AI_NAME}への執筆の指示です。すべての文書に適用されます�
   autoCloseBracketsLabel: "()、[]、「」を補完",
   plainTextMenuLabel: "右クリックメニューにプレーンテキストでコピー/ペースト",
   pdfPageNumbersLabel: "書き出し時にページ番号を表示",
+  pandocExtraArgsLabel: "Custom pandoc arguments",
+  pandocExtraArgsHelp:
+    "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",
+  pandocReferenceDocLabel: "Style template",
+  pandocReferenceDocHelp:
+    "A .docx, .odt or .pptx whose styles Pandoc copies into the exported document. Word and ODT only; other formats ignore it.",
+  pandocPickTemplate: "Choose…",
   pdfLightColorsLabel: "PDF を明るい配色で書き出す",
   infoTipLabel: "「{label}」について",
   infoTipLabelPlain: "詳細",

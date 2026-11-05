@@ -76,6 +76,29 @@ fn pandoc_args(format: &str, title: &str) -> Vec<String> {
     ]
 }
 
+/// The switches the app owns. Any webview can invoke the command, so the
+/// reader, the writer and the output path are fixed here too, not just in the
+/// frontend's own filter. Pandoc takes the last of a repeated switch.
+#[cfg(desktop)]
+fn sanitise_extra_args(args: &[String]) -> Vec<String> {
+    const OWNED: &[&str] = &["--from", "-f", "--to", "-t", "--output", "-o"];
+    let mut kept = Vec::new();
+    let mut i = 0;
+    while i < args.len() {
+        let name = args[i].split('=').next().unwrap_or("");
+        if OWNED.contains(&name) {
+            // A value in the next word belongs to the switch we are dropping.
+            if !args[i].contains('=') && i + 1 < args.len() && !args[i + 1].starts_with('-') {
+                i += 1;
+            }
+        } else {
+            kept.push(args[i].clone());
+        }
+        i += 1;
+    }
+    kept
+}
+
 /// Converts the document text to `format` via a user-installed pandoc, through
 /// stdin; --resource-path lets relative images resolve.
 #[cfg(desktop)]
@@ -88,10 +111,12 @@ pub async fn export_via_pandoc(
     format: String,
     resource_dir: Option<String>,
     title: String,
+    extra_args: Vec<String>,
 ) -> Result<(), String> {
     tauri::async_runtime::spawn_blocking(move || {
         let mut cmd = Command::new(&pandoc_path);
         cmd.args(pandoc_args(&format, &title))
+            .args(sanitise_extra_args(&extra_args))
             .arg("--output")
             .arg(&output_path)
             .stdin(Stdio::piped())
@@ -166,6 +191,22 @@ pub async fn export_save_dialog(
             .add_filter(&filter_name, &[ext.as_str()])
             .blocking_save_file()
             .map(|p| with_default_extension(p.to_string(), &ext))
+    })
+    .await
+    .ok()
+    .flatten()
+}
+
+/// Picks a --reference-doc template (Settings > Export). Word, ODT and
+/// PowerPoint templates are the ones pandoc can read.
+#[tauri::command]
+#[cfg_attr(test, specta::specta)]
+pub async fn open_reference_doc_dialog(window: tauri::WebviewWindow) -> Option<String> {
+    tauri::async_runtime::spawn_blocking(move || {
+        super::fs::window_file_dialog(&window)
+            .add_filter("Word template", &["docx", "odt", "pptx"])
+            .blocking_pick_file()
+            .map(|p| p.to_string())
     })
     .await
     .ok()

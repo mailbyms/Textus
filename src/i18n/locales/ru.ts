@@ -976,6 +976,13 @@ export default {
   autoCloseBracketsLabel: "Закрывать (), [] и «»",
   plainTextMenuLabel: "Копировать/вставить как текст в контекстном меню",
   pdfPageNumbersLabel: "Показывать номера страниц при экспорте",
+  pandocExtraArgsLabel: "Custom pandoc arguments",
+  pandocExtraArgsHelp:
+    "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",
+  pandocReferenceDocLabel: "Style template",
+  pandocReferenceDocHelp:
+    "A .docx, .odt or .pptx whose styles Pandoc copies into the exported document. Word and ODT only; other formats ignore it.",
+  pandocPickTemplate: "Choose…",
   pdfLightColorsLabel: "Экспортировать PDF в светлых цветах",
   infoTipLabel: "Подробнее о «{label}»",
   infoTipLabelPlain: "Подробнее",

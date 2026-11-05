@@ -6,6 +6,8 @@ const mocks = vi.hoisted(() => ({
     exportSaveDialog: vi.fn(),
     exportPdfNative: vi.fn(),
     revealInDir: vi.fn(),
+    detectPandoc: vi.fn(),
+    exportViaPandoc: vi.fn(),
   },
   showMessage: vi.fn(),
   fs: { readBinaryFileBase64: vi.fn(), writeTextFile: vi.fn() },
@@ -32,6 +34,7 @@ import {
   cloneEditorContent,
   exportHtml,
   exportPdf,
+  exportViaPandoc,
   pdfLayoutCss,
 } from "./exporters";
 import { MAC_PAGE, WINDOWS_PAGE } from "./paginate";
@@ -402,5 +405,41 @@ describe("exportHtml", () => {
     const html = await exported("/elsewhere/a.html");
     expect(html).toContain('src="data:image/png;base64,QUJD"');
     expect(html).not.toContain("assets/my");
+  });
+});
+
+describe("exportViaPandoc", () => {
+  const t = {
+    alertNote: "Note",
+    alertTip: "Tip",
+    alertImportant: "Important",
+    alertWarning: "Warning",
+    alertCaution: "Caution",
+    exportFailed: "Export failed:",
+    exportFailedTitle: "Export failed",
+  } as Strings;
+  const tab = {
+    id: "1",
+    path: "/docs/notes.md",
+    content: "# Title\n\nSome text.",
+  } as DocTab;
+
+  it("sends the custom switches and the template as extra arguments", async () => {
+    document.body.innerHTML = "";
+    mocks.exportDoc.detectPandoc.mockResolvedValue("pandoc");
+    mocks.exportDoc.exportSaveDialog.mockResolvedValue("/docs/notes.docx");
+    mocks.exportDoc.exportViaPandoc.mockReset().mockResolvedValue(undefined);
+    await exportViaPandoc(tab, "docx", t, "mermaid", {
+      extraArgs: '--toc --lua-filter "C:\\my filters\\f.lua"',
+      referenceDoc: "C:\\templates\\ref.docx",
+    });
+    expect(mocks.exportDoc.exportViaPandoc).toHaveBeenCalledTimes(1);
+    const args = mocks.exportDoc.exportViaPandoc.mock.calls[0][0];
+    expect(args.extraArgs).toEqual([
+      "--toc",
+      "--lua-filter",
+      "C:\\my filters\\f.lua",
+      "--reference-doc=C:\\templates\\ref.docx",
+    ]);
   });
 });

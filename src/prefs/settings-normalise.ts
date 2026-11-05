@@ -141,6 +141,14 @@ function readSettings(parsed: Raw | null): Settings {
         typeof parsed.docFont === "string"
           ? parsed.docFont.trim()
           : DEFAULT_SETTINGS.docFont,
+      pandocExtraArgs:
+        typeof parsed.pandocExtraArgs === "string"
+          ? parsed.pandocExtraArgs.trim()
+          : DEFAULT_SETTINGS.pandocExtraArgs,
+      pandocReferenceDoc:
+        typeof parsed.pandocReferenceDoc === "string"
+          ? parsed.pandocReferenceDoc.trim()
+          : DEFAULT_SETTINGS.pandocReferenceDoc,
       docLetterSpacing: DOC_LETTER_SPACINGS.includes(
         parsed.docLetterSpacing as DocLetterSpacing,
       )

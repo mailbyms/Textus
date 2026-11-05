@@ -964,6 +964,13 @@ Habilidades ficam na pasta skills/ ao lado deste arquivo, um arquivo
   autoCloseBracketsLabel: "Fechar (), [] e “”",
   plainTextMenuLabel: "Copiar/colar como texto simples no menu de contexto",
   pdfPageNumbersLabel: "Mostrar números de página ao exportar",
+  pandocExtraArgsLabel: "Custom pandoc arguments",
+  pandocExtraArgsHelp:
+    "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",
+  pandocReferenceDocLabel: "Style template",
+  pandocReferenceDocHelp:
+    "A .docx, .odt or .pptx whose styles Pandoc copies into the exported document. Word and ODT only; other formats ignore it.",
+  pandocPickTemplate: "Choose…",
   pdfLightColorsLabel: "Exportar PDFs em cores claras",
   infoTipLabel: "Mais sobre “{label}”",
   infoTipLabelPlain: "Mais informações",

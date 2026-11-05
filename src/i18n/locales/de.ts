@@ -970,6 +970,13 @@ Skills liegen im Ordner skills/ neben dieser Datei, je Skill eine
   autoCloseBracketsLabel: "(), [] und „“ schließen",
   plainTextMenuLabel: "Als reinen Text kopieren/einfügen im Kontextmenü",
   pdfPageNumbersLabel: "Seitenzahlen beim Exportieren anzeigen",
+  pandocExtraArgsLabel: "Custom pandoc arguments",
+  pandocExtraArgsHelp:
+    "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",
+  pandocReferenceDocLabel: "Style template",
+  pandocReferenceDocHelp:
+    "A .docx, .odt or .pptx whose styles Pandoc copies into the exported document. Word and ODT only; other formats ignore it.",
+  pandocPickTemplate: "Choose…",
   pdfLightColorsLabel: "PDFs in hellen Farben exportieren",
   infoTipLabel: "Mehr zu „{label}“",
   infoTipLabelPlain: "Mehr erfahren",

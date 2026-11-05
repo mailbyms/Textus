@@ -883,6 +883,13 @@ export default {
   autoCloseBracketsLabel: "補全 ()、[] 和 「」",
   plainTextMenuLabel: "右鍵選單顯示純文字複製貼上",
   pdfPageNumbersLabel: "匯出時顯示頁碼",
+  pandocExtraArgsLabel: "自訂參數",
+  pandocExtraArgsHelp:
+    "附加到 Pandoc 匯出命令的額外參數，例如 --toc --number-sections。輸入格式、輸出格式與儲存路徑由應用程式固定，無法覆寫。",
+  pandocReferenceDocLabel: "樣式檔案",
+  pandocReferenceDocHelp:
+    "一個 .docx、.odt 或 .pptx 範本，Pandoc 會將其中的樣式套用到匯出的文件。僅 Word 與 ODT 支援，其他格式會忽略。",
+  pandocPickTemplate: "選擇…",
   pdfLightColorsLabel: "匯出 PDF 時使用淺色",
   infoTipLabel: "關於「{label}」的說明",
   infoTipLabelPlain: "說明",

@@ -9,6 +9,7 @@ import { exportDoc, fs } from "../platform/ipc";
 import { isMacPlatform, isWindowsPlatform } from "../platform/os";
 import { canExportPdf, canExportWithPandoc } from "../platform/capabilities";
 import { toPandocMarkdown } from "./pandoc-markdown";
+import { extraPandocArgs } from "./pandoc-args";
 import {
   diagramsToImages,
   drawnBlocksToImages,
@@ -293,6 +294,7 @@ export async function exportViaPandoc(
   format: string,
   t: Strings,
   diagramEngine: DiagramEngine,
+  pandocSettings: { extraArgs: string; referenceDoc: string },
 ): Promise<void> {
   const info = PANDOC_FORMATS[format];
   if (!info || !canExportWithPandoc) return;
@@ -335,6 +337,11 @@ export async function exportViaPandoc(
       format,
       resourceDir: tab.path ? dirname(tab.path) : null,
       title: base,
+      extraArgs: extraPandocArgs(
+        pandocSettings.extraArgs,
+        format,
+        pandocSettings.referenceDoc,
+      ),
     });
     void exportDoc.revealInDir(picked);
   } catch (err) {

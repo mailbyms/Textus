@@ -921,6 +921,13 @@ ${AI_NAME}에게 주는 글쓰기 지침으로, 모든 문서에 적용됩니다
   autoCloseBracketsLabel: "(), [], “” 짝 맞추기",
   plainTextMenuLabel: "오른쪽 클릭 메뉴에 일반 텍스트로 복사/붙여넣기",
   pdfPageNumbersLabel: "내보낼 때 쪽 번호 표시",
+  pandocExtraArgsLabel: "Custom pandoc arguments",
+  pandocExtraArgsHelp:
+    "Extra switches for Word, ODT and the other Pandoc exports, e.g. --toc --number-sections. The reader, the format and the output path stay fixed.",
+  pandocReferenceDocLabel: "Style template",
+  pandocReferenceDocHelp:
+    "A .docx, .odt or .pptx whose styles Pandoc copies into the exported document. Word and ODT only; other formats ignore it.",
+  pandocPickTemplate: "Choose…",
   pdfLightColorsLabel: "PDF를 밝은 색으로 내보내기",
   infoTipLabel: "‘{label}’ 설명",
   infoTipLabelPlain: "설명",

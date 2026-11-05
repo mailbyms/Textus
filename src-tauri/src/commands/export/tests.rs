@@ -1,4 +1,26 @@
-use super::pandoc_args;
+use super::{pandoc_args, sanitise_extra_args};
+
+#[test]
+fn extra_args_cannot_change_the_writers_switches() {
+    let args: Vec<String> = [
+        "--lua-filter=x.lua",
+        "--to",
+        "html",
+        "--output=other.docx",
+        "-o",
+        "x",
+        "--from=gfm",
+        "--metadata",
+        "author=me",
+    ]
+    .iter()
+    .map(|s| s.to_string())
+    .collect();
+    assert_eq!(
+        sanitise_extra_args(&args).join(" "),
+        "--lua-filter=x.lua --metadata author=me"
+    );
+}
 
 #[test]
 fn pandoc_reads_the_editor_dialect_and_titles_only_epub() {
