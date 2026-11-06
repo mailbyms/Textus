@@ -1292,6 +1292,8 @@ Habilidades ficam na pasta skills/ ao lado deste arquivo, um arquivo
   closePromptSave: "Salvar",
   closePromptDiscard: "Não Salvar",
   closePromptCancel: "Cancelar",
+  linkOpenFileConfirm: "Abrir “{name}” no app dele?",
+  linkOpenFileOk: "Abrir",
   cancel: "Cancelar",
   draftRestoredMessage: "O conteúdo não salvo da última sessão foi recuperado.",
   draftRestoredDismiss: "Entendi",
@@ -1600,6 +1602,10 @@ Habilidades ficam na pasta skills/ ao lado deste arquivo, um arquivo
   pluginOpenTurnOn:
     "O plugin {name} abre “{file}”, mas está desligado. Ligá-lo e abrir o arquivo?",
   pluginOpenTurnOnButton: "Ligar e abrir",
+  pluginOfferInstall: "Instalar o plugin {name}?\n{description}",
+  pluginOfferTurnOn:
+    "O plugin {name} está instalado, mas desligado. Ligá-lo?\n{description}",
+  pluginOfferReason: "Sugerido por um plugin: “{reason}”",
   pluginScreenshot: "{name} em uso",
   pluginsMine: "Feitos por você",
   pluginsNone: "Nenhum ainda.",

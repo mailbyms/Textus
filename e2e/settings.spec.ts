@@ -578,7 +578,7 @@ test.describe("desktop", () => {
     await openSettings(page);
     const panel = page.locator(".settings-panel");
     const items = panel.locator(".settings-nav-item");
-    await expect(items).toHaveCount(6);
+    await expect(items).toHaveCount(7);
     const widths = new Set<number>();
     for (const item of await items.all()) {
       await item.click();

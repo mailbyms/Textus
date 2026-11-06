@@ -1251,6 +1251,8 @@ ${AI_NAME}への執筆の指示です。すべての文書に適用されます�
   closePromptSave: "保存",
   closePromptDiscard: "保存しない",
   closePromptCancel: "キャンセル",
+  linkOpenFileConfirm: "「{name}」を既定のアプリで開きますか？",
+  linkOpenFileOk: "開く",
   cancel: "キャンセル",
   draftRestoredMessage: "前回のセッションの未保存の内容を復元しました。",
   draftRestoredDismiss: "OK",
@@ -1560,6 +1562,11 @@ ${AI_NAME}への執筆の指示です。すべての文書に適用されます�
   pluginOpenTurnOn:
     "「{file}」はプラグイン「{name}」で開けますが、オフになっています。オンにして開きますか？",
   pluginOpenTurnOnButton: "オンにして開く",
+  pluginOfferInstall:
+    "{name} プラグインをインストールしますか？\n{description}",
+  pluginOfferTurnOn:
+    "{name} プラグインはインストール済みですがオフです。オンにしますか？\n{description}",
+  pluginOfferReason: "プラグインからの提案：「{reason}」",
   pluginScreenshot: "{name} の画面",
   pluginsMine: "自分で作ったもの",
   pluginsNone: "まだありません。",

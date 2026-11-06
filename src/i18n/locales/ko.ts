@@ -1239,6 +1239,8 @@ ${AI_NAME}에게 주는 글쓰기 지침으로, 모든 문서에 적용됩니다
   closePromptSave: "저장",
   closePromptDiscard: "저장 안 함",
   closePromptCancel: "취소",
+  linkOpenFileConfirm: "‘{name}’을(를) 기본 앱으로 열까요?",
+  linkOpenFileOk: "열기",
   cancel: "취소",
   draftRestoredMessage: "지난 세션에서 저장하지 않은 내용을 복구했습니다.",
   draftRestoredDismiss: "확인",
@@ -1545,6 +1547,10 @@ ${AI_NAME}에게 주는 글쓰기 지침으로, 모든 문서에 적용됩니다
   pluginOpenTurnOn:
     "“{file}”은(는) {name} 플러그인으로 열 수 있지만 꺼져 있습니다. 켜고 열까요?",
   pluginOpenTurnOnButton: "켜고 열기",
+  pluginOfferInstall: "{name} 플러그인을 설치할까요?\n{description}",
+  pluginOfferTurnOn:
+    "{name} 플러그인이 설치되어 있지만 꺼져 있습니다. 켤까요?\n{description}",
+  pluginOfferReason: "플러그인의 제안: “{reason}”",
   pluginScreenshot: "{name} 사용 화면",
   pluginsMine: "직접 만든 플러그인",
   pluginsNone: "아직 없습니다.",

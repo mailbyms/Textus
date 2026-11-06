@@ -1302,6 +1302,8 @@ Skills liegen im Ordner skills/ neben dieser Datei, je Skill eine
   closePromptSave: "Speichern",
   closePromptDiscard: "Nicht speichern",
   closePromptCancel: "Abbrechen",
+  linkOpenFileConfirm: "„{name}“ in seiner App öffnen?",
+  linkOpenFileOk: "Öffnen",
   cancel: "Abbrechen",
   draftRestoredMessage:
     "Nicht gespeicherte Inhalte der letzten Sitzung wurden wiederhergestellt.",
@@ -1617,6 +1619,10 @@ Skills liegen im Ordner skills/ neben dieser Datei, je Skill eine
   pluginOpenTurnOn:
     "Das Plugin {name} öffnet „{file}“, ist aber aus. Einschalten und die Datei öffnen?",
   pluginOpenTurnOnButton: "Einschalten und öffnen",
+  pluginOfferInstall: "Plugin {name} installieren?\n{description}",
+  pluginOfferTurnOn:
+    "Das Plugin {name} ist installiert, aber aus. Einschalten?\n{description}",
+  pluginOfferReason: "Von einem Plugin vorgeschlagen: „{reason}“",
   pluginScreenshot: "{name} bei der Arbeit",
   pluginsMine: "Von dir erstellt",
   pluginsNone: "Noch keine.",

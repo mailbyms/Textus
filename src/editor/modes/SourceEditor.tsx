@@ -37,6 +37,10 @@ export interface SourceEditorProps {
   className?: string;
   /** Split view follows the source pane's scroll. */
   onScroll?: (scroller: HTMLElement) => void;
+  /** Takes a paste before CodeMirror does: true when it is handled. A
+   *  document's source passes one that writes a pasted picture's Markdown
+   *  (see DocSourceEditor); the playground has no file to store one beside. */
+  onPaste?: (event: ClipboardEvent, view: EditorView) => boolean;
 }
 
 /**
@@ -51,12 +55,16 @@ export function SourceEditor({
   readOnly = false,
   className = "",
   onScroll,
+  onPaste,
 }: SourceEditorProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const readOnlyRef = useRef<Compartment | null>(null);
   const latest = useRef({ value, onChange, typewriter, readOnly, onScroll });
   latest.current = { value, onChange, typewriter, readOnly, onScroll };
+  // The extension is built once; it reads the current handler through here.
+  const pasteRef = useRef(onPaste);
+  pasteRef.current = onPaste;
 
   useEffect(() => {
     const host = hostRef.current;
@@ -85,6 +93,11 @@ export function SourceEditor({
           // No searchKeymap: Ctrl/Cmd+F belongs to Textus's own find bar.
           keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
           sourceHighlighting(),
+          // A caller's paste handler (a document's source stores pictures);
+          // anything it leaves alone is CodeMirror's own.
+          EditorView.domEventHandlers({
+            paste: (event, view) => pasteRef.current?.(event, view) ?? false,
+          }),
           compartment.of(readOnlyOf(latest.current.readOnly)),
           EditorView.updateListener.of((update) => {
             if (update.docChanged)

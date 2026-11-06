@@ -4,7 +4,7 @@
 #[cfg(desktop)]
 use std::io::Write;
 #[cfg(desktop)]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 #[cfg(desktop)]
 use std::process::{Command, Stdio};
 
@@ -85,14 +85,37 @@ fn sanitise_extra_args(args: &[String]) -> Vec<String> {
     let mut kept = Vec::new();
     let mut i = 0;
     while i < args.len() {
-        let name = args[i].split('=').next().unwrap_or("");
-        if OWNED.contains(&name) {
+        let arg = &args[i];
+        let name = arg.split('=').next().unwrap_or("");
+        let takes_value = !arg.contains('=');
+        if name == "--reference-doc" {
+            // A template since moved or deleted leaves pandoc's own styles,
+            // rather than failing the export on a path that is gone.
+            match (takes_value, args.get(i + 1)) {
+                (false, _) => {
+                    if arg
+                        .split_once('=')
+                        .is_some_and(|(_, path)| Path::new(path).is_file())
+                    {
+                        kept.push(arg.clone());
+                    }
+                }
+                (true, Some(value)) => {
+                    i += 1;
+                    if Path::new(value).is_file() {
+                        kept.push(arg.clone());
+                        kept.push(value.clone());
+                    }
+                }
+                (true, None) => {}
+            }
+        } else if OWNED.contains(&name) {
             // A value in the next word belongs to the switch we are dropping.
-            if !args[i].contains('=') && i + 1 < args.len() && !args[i + 1].starts_with('-') {
+            if takes_value && i + 1 < args.len() && !args[i + 1].starts_with('-') {
                 i += 1;
             }
         } else {
-            kept.push(args[i].clone());
+            kept.push(arg.clone());
         }
         i += 1;
     }
@@ -197,22 +220,6 @@ pub async fn export_save_dialog(
     .flatten()
 }
 
-/// Picks a --reference-doc template (Settings > Export). Word, ODT and
-/// PowerPoint templates are the ones pandoc can read.
-#[tauri::command]
-#[cfg_attr(test, specta::specta)]
-pub async fn open_reference_doc_dialog(window: tauri::WebviewWindow) -> Option<String> {
-    tauri::async_runtime::spawn_blocking(move || {
-        super::fs::window_file_dialog(&window)
-            .add_filter("Word template", &["docx", "odt", "pptx"])
-            .blocking_pick_file()
-            .map(|p| p.to_string())
-    })
-    .await
-    .ok()
-    .flatten()
-}
-
 #[cfg(desktop)]
 #[tauri::command]
 #[cfg_attr(test, specta::specta)]
@@ -241,6 +248,106 @@ pub async fn reveal_in_dir(app: tauri::AppHandle, path: String) -> Result<(), St
     app.opener()
         .reveal_item_in_dir(&path)
         .map_err(|e| e.to_string())
+}
+
+/// Kinds of file the system would run rather than show: a link to one is
+/// only shown in its folder, whatever the document asked for.
+#[cfg(desktop)]
+const RUNNABLE: &[&str] = &[
+    "exe",
+    "msi",
+    "bat",
+    "cmd",
+    "com",
+    "scr",
+    "pif",
+    "cpl",
+    "msc",
+    "ps1",
+    "psm1",
+    "vbs",
+    "vbe",
+    "js",
+    "jse",
+    "wsf",
+    "wsh",
+    "hta",
+    "reg",
+    "lnk",
+    "url",
+    "jar",
+    "sh",
+    "bash",
+    "zsh",
+    "fish",
+    "csh",
+    "command",
+    "tool",
+    "app",
+    "pkg",
+    "run",
+    "bin",
+    "appimage",
+    "desktop",
+    "py",
+    "pyw",
+    "pl",
+    "rb",
+    "php",
+    "scpt",
+    "applescript",
+    "workflow",
+    "action",
+];
+
+#[cfg(desktop)]
+fn is_runnable(path: &str) -> bool {
+    std::path::Path::new(path)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| RUNNABLE.contains(&ext.to_ascii_lowercase().as_str()))
+}
+
+/// A local file a document links to, opened in the app the system picks for
+/// it, after the user agreed in the editor; one the system would run is only
+/// shown in its folder.
+#[cfg(desktop)]
+#[tauri::command]
+#[cfg_attr(test, specta::specta)]
+pub async fn open_linked_file(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let opener = app.opener();
+    if is_runnable(&path) || std::path::Path::new(&path).is_dir() {
+        opener.reveal_item_in_dir(&path)
+    } else {
+        opener.open_path(&path, None::<&str>)
+    }
+    .map_err(|e| e.to_string())
+}
+
+#[cfg(all(test, desktop))]
+mod linked_file_tests {
+    use super::is_runnable;
+
+    #[test]
+    fn programs_and_scripts_are_only_shown() {
+        for path in [
+            "C:\\x\\setup.EXE",
+            "/tmp/run.sh",
+            "/Applications/A.app",
+            "a.ps1",
+        ] {
+            assert!(is_runnable(path), "{path}");
+        }
+        for path in [
+            "D:/论文/原文.pdf",
+            "/tmp/notes.docx",
+            "/tmp/photo.png",
+            "/tmp/noext",
+        ] {
+            assert!(!is_runnable(path), "{path}");
+        }
+    }
 }
 
 // macOS can't use window.print() (wry's NSPrintPanel flashes and dismisses

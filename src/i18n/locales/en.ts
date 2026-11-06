@@ -1273,6 +1273,8 @@ type /name in a conversation to use one.
   closePromptSave: "Save",
   closePromptDiscard: "Don't Save",
   closePromptCancel: "Cancel",
+  linkOpenFileConfirm: "Open “{name}” in its app?",
+  linkOpenFileOk: "Open",
   cancel: "Cancel",
   draftRestoredMessage: "Recovered unsaved content from the last session.",
   draftRestoredDismiss: "Got it",
@@ -1582,6 +1584,10 @@ type /name in a conversation to use one.
   pluginOpenTurnOn:
     "The {name} plugin opens “{file}”, but it is off. Turn it on and open the file?",
   pluginOpenTurnOnButton: "Turn on and open",
+  pluginOfferInstall: "Install the {name} plugin?\n{description}",
+  pluginOfferTurnOn:
+    "The {name} plugin is installed but off. Turn it on?\n{description}",
+  pluginOfferReason: "Suggested by a plugin: “{reason}”",
   pluginScreenshot: "{name} at work",
   pluginsMine: "Made by you",
   pluginsNone: "None yet.",

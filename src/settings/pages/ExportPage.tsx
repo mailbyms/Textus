@@ -3,7 +3,7 @@ import type { SettingsPageProps } from "./types";
 import { SettingsGroup } from "./SettingsGroup";
 import { SettingRow, VERBATIM_INPUT } from "../sections/controls";
 import { canExportWithPandoc } from "../../platform/capabilities";
-import { exportDoc } from "../../platform/ipc";
+import { fs } from "../../platform/ipc";
 
 /** Settings › Export: one tab for every writer the user can configure.
  *  General stays empty until a switch applies to all exports, not just one
@@ -91,7 +91,12 @@ function DocxTab({ t, settings, setSettings }: DocxProps) {
           type="button"
           className="text-button settings-inline-button"
           onClick={async () => {
-            const picked = await exportDoc.pickReferenceDoc();
+            // The templates pandoc's writers accept: Word, OpenDocument and
+            // PowerPoint.
+            const picked = await fs.openImageFileDialog(
+              t.pandocReferenceDocLabel,
+              ["docx", "odt", "pptx"],
+            );
             if (picked) setSettings({ pandocReferenceDoc: picked });
           }}
         >

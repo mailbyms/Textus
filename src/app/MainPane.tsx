@@ -7,7 +7,7 @@ import {
 } from "../platform/capabilities";
 import { lazyModule } from "../lazy/lazy-module";
 import { lazyComponent } from "../lazy/lazy-component";
-import { SourceEditor } from "../editor/modes/lazy-source-editor";
+import { DocSourceEditor } from "../editor/modes/lazy-doc-source-editor";
 import { tabIsDirty, tabTitle, type DocTab } from "../document/doc-tabs";
 import { tabReadOnly } from "../document/read-only";
 import type { Strings } from "../i18n/strings";
@@ -292,8 +292,9 @@ export function MainPane({
               </Suspense>
             ) : tab.sourceMode ? (
               <Suspense fallback={null}>
-                <SourceEditor
+                <DocSourceEditor
                   value={tab.content}
+                  docPath={tab.path}
                   typewriter={typewriter}
                   onChange={(markdown) => onChange(tab.id, markdown)}
                   readOnly={tabReadOnly(tab)}

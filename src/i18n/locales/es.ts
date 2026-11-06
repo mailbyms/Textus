@@ -1310,6 +1310,8 @@ para usar una.
   closePromptSave: "Guardar",
   closePromptDiscard: "No guardar",
   closePromptCancel: "Cancelar",
+  linkOpenFileConfirm: "¿Abrir «{name}» en su aplicación?",
+  linkOpenFileOk: "Abrir",
   cancel: "Cancelar",
   draftRestoredMessage:
     "Se recuperó contenido sin guardar de la sesión anterior.",
@@ -1622,6 +1624,10 @@ para usar una.
   pluginOpenTurnOn:
     "El complemento {name} abre «{file}», pero está desactivado. ¿Activarlo y abrir el archivo?",
   pluginOpenTurnOnButton: "Activar y abrir",
+  pluginOfferInstall: "¿Instalar el plugin {name}?\n{description}",
+  pluginOfferTurnOn:
+    "El plugin {name} está instalado pero desactivado. ¿Activarlo?\n{description}",
+  pluginOfferReason: "Sugerido por un plugin: «{reason}»",
   pluginScreenshot: "{name} en uso",
   pluginsMine: "Hechos por ti",
   pluginsNone: "Ninguno todavía.",

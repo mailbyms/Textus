@@ -1328,6 +1328,8 @@ utiliser une.
   closePromptSave: "Enregistrer",
   closePromptDiscard: "Ne pas enregistrer",
   closePromptCancel: "Annuler",
+  linkOpenFileConfirm: "Ouvrir « {name} » dans son application ?",
+  linkOpenFileOk: "Ouvrir",
   cancel: "Annuler",
   draftRestoredMessage:
     "Le contenu non enregistré de la dernière session a été récupéré.",
@@ -1645,6 +1647,10 @@ utiliser une.
   pluginOpenTurnOn:
     "L’extension {name} ouvre « {file} », mais elle est désactivée. L’activer et ouvrir le fichier ?",
   pluginOpenTurnOnButton: "Activer et ouvrir",
+  pluginOfferInstall: "Installer le plugin {name} ?\n{description}",
+  pluginOfferTurnOn:
+    "Le plugin {name} est installé mais désactivé. L’activer ?\n{description}",
+  pluginOfferReason: "Suggéré par un plugin : « {reason} »",
   pluginScreenshot: "{name} en action",
   pluginsMine: "Créées par vous",
   pluginsNone: "Aucune pour l’instant.",

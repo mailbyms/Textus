@@ -1190,6 +1190,8 @@ export default {
   closePromptSave: "保存",
   closePromptDiscard: "不保存",
   closePromptCancel: "取消",
+  linkOpenFileConfirm: "用默认程序打开「{name}」？",
+  linkOpenFileOk: "打开",
   cancel: "取消",
   draftRestoredMessage: "已恢复上次会话中未保存的内容。",
   draftRestoredDismiss: "知道了",
@@ -1477,6 +1479,9 @@ export default {
   pluginOpenTurnOn:
     "插件「{name}」可以打开“{file}”，但它现在关着。开启插件并打开这个文件吗？",
   pluginOpenTurnOnButton: "开启并打开",
+  pluginOfferInstall: "安装「{name}」插件？\n{description}",
+  pluginOfferTurnOn: "「{name}」插件已安装但未开启。要开启吗？\n{description}",
+  pluginOfferReason: "来自插件的建议：“{reason}”",
   pluginScreenshot: "{name} 使用截图",
   pluginsMine: "我做的插件",
   pluginsNone: "还没有。",

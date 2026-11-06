@@ -4,7 +4,7 @@ import { useKatexHtml } from "../math/useKatexHtml";
 import { resolveImageSrc } from "../images/image-plugin";
 import { diagramRenderer } from "../diagram-engine";
 import { useSettings } from "../../prefs/SettingsContext";
-import { SourceEditor } from "./lazy-source-editor";
+import { DocSourceEditor } from "./lazy-doc-source-editor";
 import "./SplitView.css";
 
 /**
@@ -108,9 +108,10 @@ export function SplitView({
 
   return (
     <div ref={rootRef} className="split-view">
-      <SourceEditor
+      <DocSourceEditor
         className="split-source"
         value={content}
+        docPath={filePath}
         typewriter={typewriter}
         onChange={onChange}
         readOnly={readOnly}

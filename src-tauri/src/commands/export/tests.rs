@@ -23,6 +23,27 @@ fn extra_args_cannot_change_the_writers_switches() {
 }
 
 #[test]
+fn a_missing_template_leaves_pandocs_own_styles() {
+    let template = std::env::temp_dir().join("textus-export-template.docx");
+    std::fs::write(&template, b"x").unwrap();
+    let kept = sanitise_extra_args(&[
+        "--toc".to_string(),
+        format!("--reference-doc={}", template.display()),
+        "--reference-doc=/no/such/template.docx".to_string(),
+        "--reference-doc".to_string(),
+        "/no/such/other.docx".to_string(),
+    ]);
+    assert_eq!(
+        kept,
+        vec![
+            "--toc".to_string(),
+            format!("--reference-doc={}", template.display())
+        ]
+    );
+    let _ = std::fs::remove_file(&template);
+}
+
+#[test]
 fn pandoc_reads_the_editor_dialect_and_titles_only_epub() {
     let docx = pandoc_args("docx", "notes");
     assert_eq!(docx[0], "--from");

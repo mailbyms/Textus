@@ -1,7 +1,7 @@
 import { Plugin } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
 import { $prose } from "@milkdown/kit/utils";
-import { exportDoc, fs, links } from "../../platform/ipc";
+import { fs, links } from "../../platform/ipc";
 import { isScopedUrl } from "../../platform/ios-files";
 import { editorExtensions } from "../extension-points";
 import { modIsMeta } from "../../platform/os";
@@ -48,15 +48,17 @@ async function follow(view: EditorView, target: LinkTarget): Promise<void> {
   }
   // A link to a file that isn't there opens nothing.
   if ((await fs.fileMtimeMs(target.path)) === null) return;
-  if (target.kind === "document")
-    window.dispatchEvent(
-      new CustomEvent<OpenFileInTab>(OPEN_FILE_IN_TAB_EVENT, {
-        detail: { path: target.path, anchor: target.anchor },
-      }),
-    );
-  // Shown, not opened: the system would run a linked program as readily as it
-  // shows a PDF.
-  else return exportDoc.revealInDir(target.path);
+  // A Markdown file opens in a tab; another kind in a tab too when Textus
+  // shows it (a Word file, a plugin's PDF), else the app asks to open it
+  // outside.
+  window.dispatchEvent(
+    new CustomEvent<OpenFileInTab>(OPEN_FILE_IN_TAB_EVENT, {
+      detail:
+        target.kind === "document"
+          ? { path: target.path, anchor: target.anchor }
+          : { path: target.path, linked: true },
+    }),
+  );
 }
 
 /** A wikilink: `[[#Heading]]` scrolls here, `[[Note]]` opens the vault's

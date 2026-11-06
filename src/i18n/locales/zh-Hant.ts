@@ -1191,6 +1191,8 @@ export default {
   closePromptSave: "儲存",
   closePromptDiscard: "不儲存",
   closePromptCancel: "取消",
+  linkOpenFileConfirm: "用預設程式開啟「{name}」？",
+  linkOpenFileOk: "開啟",
   cancel: "取消",
   draftRestoredMessage: "已復原上次工作階段中未儲存的內容。",
   draftRestoredDismiss: "知道了",
@@ -1484,6 +1486,10 @@ export default {
   pluginOpenTurnOn:
     "外掛「{name}」可以開啟「{file}」，但它目前已關閉。要開啟外掛並開啟這個檔案嗎？",
   pluginOpenTurnOnButton: "開啟並開啟檔案",
+  pluginOfferInstall: "安裝外掛「{name}」？\n{description}",
+  pluginOfferTurnOn:
+    "外掛「{name}」已安裝但目前已關閉。要開啟嗎？\n{description}",
+  pluginOfferReason: "來自外掛的建議：「{reason}」",
   pluginScreenshot: "{name} 使用截圖",
   pluginsMine: "我做的外掛",
   pluginsNone: "尚無。",
