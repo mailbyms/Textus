@@ -23,7 +23,6 @@ const ALLOWED: Record<string, string> = {
   "app/useFileOpening.ts": "no files dropped on the window",
   "app/useSidePanels.ts":
     "a drawer that starts closed, a sheet over the keyboard",
-  "document-view/EditorPane.tsx": "the system's own overscroll",
   "document-view/useQuickAskReview.ts": "the keyboard and the review's focus",
   "document/ios-recents.ts": "the document list's recent documents",
   "document/startup-restore.ts": "reopens the last document; no shortcut tour",
@@ -32,9 +31,9 @@ const ALLOWED: Record<string, string> = {
   "editor/code/code-language-picker.tsx": "the system's picker",
   "platform/ios-files.ts": "the Files app's documents",
   "platform/ipc-files.ts": "the Files app's documents",
-  "platform/ipc.ts": "desktop-only commands answer empty",
+  "platform/ipc-ai-workspace.ts": "the project folder is picked in Files",
   "platform/mobile-viewport.ts": "the keyboard resizes the page",
-  "plugins/manager.ts": "textus.env.platform tells plugins it is iOS",
+  "plugins/plugin-platform.ts": "textus.env.platform tells plugins it is iOS",
   "settings/sections/providers.tsx": "no keyboard raised on its own",
   "settings/settings-pages.tsx": "no keyboard to bind shortcuts on",
   "sidebar/FileTree.tsx": "nothing above Documents or a granted folder",
@@ -42,6 +41,7 @@ const ALLOWED: Record<string, string> = {
   "theme/apply-appearance.ts":
     "its WebKit draws CJK as boxes under generic system fonts",
   "ui/Select.tsx": "the system's picker",
+  "ui/elastic-overscroll.ts": "the system's own overscroll",
   "ui/usePhoneLayout.ts": "the phone layout itself",
 };
 

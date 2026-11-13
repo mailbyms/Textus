@@ -1,5 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
-import { openApp } from "./helpers";
+import { expect, test } from "@playwright/test";
+import { emit, openApp, END } from "./helpers";
 
 /**
  * textus.files.onWillSave: a plugin's change before saving goes into the
@@ -35,18 +35,6 @@ const ENTRY = {
   files: { "host.js": HOST },
 };
 
-async function emit(page: Page, name: string, payload?: unknown) {
-  await page.evaluate(
-    ([n, p]) =>
-      (
-        window as unknown as {
-          __devEmitTauriEvent: (n: string, p: unknown) => void;
-        }
-      ).__devEmitTauriEvent(n as string, p),
-    [name, payload] as const,
-  );
-}
-
 test("a plugin's onWillSave changes what is saved, and the editor shows it", async ({
   page,
 }) => {
@@ -66,7 +54,7 @@ test("a plugin's onWillSave changes what is saved, and the editor shows it", asy
   await expect(editor.locator("h1")).toContainText("A");
 
   await editor.locator("p").click();
-  await page.keyboard.press("End");
+  await page.keyboard.press(END);
   await page.keyboard.type(" More.");
   // Saved once the plugin has started and listens.
   await expect(async () => {

@@ -55,9 +55,16 @@
   padding: 4px 8px;
   border-radius: var(--shape-s);
   cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.plugin-list-row.is-active {
+/* Under the pointer; the keyboard's row only while the keys move it (the
+   list or its filter focused from the keyboard), so the row the pointer
+   left last doesn't stay lit. */
+.plugin-list-row:hover,
+.plugin-list-rows:focus-visible .plugin-list-row.is-active,
+.plugin-list:has(.plugin-list-filter:focus-visible) .plugin-list-row.is-active {
   background: var(--ui-hover);
 }
 
@@ -157,4 +164,10 @@
 /* Where the next page of rows starts drawing as it scrolls into view. */
 .plugin-list-more {
   height: 1px;
+}
+
+/* A row another is being dragged onto. */
+.plugin-list-row.is-drop {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: -2px;
 }

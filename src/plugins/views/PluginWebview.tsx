@@ -15,6 +15,14 @@ import type { CodeBlockSeen } from "../manager";
 import { windowInfo } from "../store/plugin-records";
 import { watchTheme, webviewThemeCss, windowIsDark } from "./theme-vars";
 import { pageMenuEntries } from "./webview-menu";
+import { clipboardText, textFieldItems } from "../../ui/text-field-menu";
+import {
+  contentZoom,
+  passZoomGesture,
+  passZoomWheel,
+  watchContentZoom,
+} from "./frame-zoom";
+import { createPortal } from "react-dom";
 import { ContextMenu, type ContextMenuEntry } from "../../ui/ContextMenu";
 import { Presence } from "../../ui/usePresence";
 import {
@@ -34,19 +42,28 @@ export function webviewPage(record: WebviewRecord, html: string) {
   const plugin = pluginRecord(record.plugin);
   return {
     srcdoc: webviewDocument(html, {
-      themeCss: webviewThemeCss(),
+      themeCss: webviewThemeCss(record.kind === "codeBlock"),
       dark: windowIsDark(),
       frameHosts: grantedHosts(plugin?.granted ?? []),
       language: windowInfo().language(),
       l10n: plugin?.manifest?.l10n ?? {},
       floating: record.kind === "floating",
+      sidebar: record.kind === "sidebar",
     }),
     title: plugin ? pluginName(plugin) : record.plugin,
   };
 }
 
-/** The tallest a code block's frame grows; past it, it scrolls. */
+/** The tallest a code block's frame grows: at most 70% of the window, so a
+ *  long table or board scrolls inside and the note around it stays in
+ *  view. */
 const MAX_CODE_BLOCK_HEIGHT = 1200;
+const CODE_BLOCK_SHARE = 0.7;
+const codeBlockMax = () =>
+  Math.min(
+    MAX_CODE_BLOCK_HEIGHT,
+    Math.round(window.innerHeight * CODE_BLOCK_SHARE),
+  );
 
 /**
  * Where a plugin's webview is drawn: a sandboxed frame rebuilt on new HTML,
@@ -59,8 +76,9 @@ export function PluginWebview({
 }: {
   id: string;
   className?: string;
-  /** The frame as tall as its page, up to this many pixels. */
-  fitHeight?: number;
+  /** The frame as tall as its page, up to this many pixels (asked as it
+   *  changes, when a function). */
+  fitHeight?: number | (() => number);
 }) {
   useSyncExternalStore(subscribeWebviews, webviewsVersion);
   const record = webview(id);
@@ -80,9 +98,31 @@ export function PluginWebview({
     const current = webview(id);
     if (!box || html === null || !current) return;
     const page = webviewPage(current, html);
+    // A code block's page is drawn in the document, at its text size and
+    // zoom; a settings page is only as tall as its page, still interface.
+    const inDocument = current.kind === "codeBlock";
     const frame = sandboxedFrame(page.srcdoc, page.title);
     frame.className = "plugin-webview-frame";
     let endpoint: Parameters<typeof webviewConnected>[1] = null;
+    // A menu the page asks for, at its point in the page: the value picked.
+    const askMenu = (items: unknown, x: unknown, y: unknown) =>
+      new Promise<unknown>((resolve) => {
+        let done = false;
+        const finish = (value: unknown) => {
+          if (done) return;
+          done = true;
+          setMenu(null);
+          resolve(value);
+        };
+        const box = frame.getBoundingClientRect();
+        closeMenuRef.current = () => finish(null);
+        setMenu({
+          x: box.left + (typeof x === "number" ? x : 0),
+          y: box.top + (typeof y === "number" ? y : 0),
+          items: pageMenuEntries(items, finish),
+          close: () => finish(null),
+        });
+      });
     const disconnect = connectFrame(
       frame,
       {
@@ -91,27 +131,51 @@ export function PluginWebview({
         state: ({ state }: { state: unknown }) =>
           setWebviewState(current.key, state),
         menu: ({ items, x, y }: { items: unknown; x: unknown; y: unknown }) =>
-          new Promise<unknown>((resolve) => {
-            let done = false;
-            const finish = (value: unknown) => {
-              if (done) return;
-              done = true;
-              setMenu(null);
-              resolve(value);
-            };
-            const box = frame.getBoundingClientRect();
-            closeMenuRef.current = () => finish(null);
-            setMenu({
-              x: box.left + (typeof x === "number" ? x : 0),
-              y: box.top + (typeof y === "number" ? y : 0),
-              items: pageMenuEntries(items, finish),
-              close: () => finish(null),
-            });
-          }),
+          askMenu(items, x, y),
+        // A text field's menu in the page, the window's own (text-field-menu.tsx).
+        textMenu: ({
+          x,
+          y,
+          selected,
+        }: {
+          x: unknown;
+          y: unknown;
+          selected: unknown;
+        }) =>
+          askMenu(
+            textFieldItems(windowInfo().strings(), selected === true),
+            x,
+            y,
+          ),
+        textItems: ({ selected }: { selected: unknown }) =>
+          textFieldItems(windowInfo().strings(), selected === true),
+        clipboardWrite: ({ text }: { text: unknown }) =>
+          navigator.clipboard.writeText(String(text ?? "")).then(() => true),
+        clipboardRead: () => clipboardText(),
         menuClose: () => closeMenuRef.current?.(),
+        // Told on as a right-click on the frame, for the menu around it.
+        contextMenu: ({ x, y }: { x: unknown; y: unknown }) => {
+          const at = frame.getBoundingClientRect();
+          frame.dispatchEvent(
+            new MouseEvent("contextmenu", {
+              bubbles: true,
+              cancelable: true,
+              button: 2,
+              clientX: at.left + (typeof x === "number" ? x : 0),
+              clientY: at.top + (typeof y === "number" ? y : 0),
+            }),
+          );
+        },
+        zoomWheel: (params: Parameters<typeof passZoomWheel>[1]) =>
+          passZoomWheel(frame, params),
+        zoomGesture: (params: Parameters<typeof passZoomGesture>[1]) =>
+          passZoomGesture(frame, params),
         height: ({ height }: { height: unknown }) => {
           if (fitHeight && typeof height === "number")
-            frame.style.height = `${Math.min(Math.max(height, 24), fitHeight)}px`;
+            frame.style.height = `${Math.min(
+              Math.max(height, 24),
+              typeof fitHeight === "function" ? fitHeight() : fitHeight,
+            )}px`;
         },
       },
       () => ({
@@ -121,17 +185,23 @@ export function PluginWebview({
       (connected) => {
         endpoint = connected;
         webviewConnected(id, connected);
+        if (inDocument) connected?.notify("zoom", { zoom: contentZoom() });
       },
     );
+    // A page in the document draws at the document's zoom itself.
+    const stopZoom = inDocument
+      ? watchContentZoom((zoom) => endpoint?.notify("zoom", { zoom }))
+      : () => {};
     const stopTheme = watchTheme(() =>
       endpoint?.notify("theme", {
-        css: webviewThemeCss(),
+        css: webviewThemeCss(inDocument),
         dark: windowIsDark(),
       }),
     );
     box.replaceChildren(frame);
     return () => {
       stopTheme();
+      stopZoom();
       disconnect();
       webviewConnected(id, null);
       frame.remove();
@@ -145,16 +215,21 @@ export function PluginWebview({
         className={`plugin-webview ${className ?? ""}`}
         data-webview-id={id}
       />
-      <Presence show={menu !== null} exitMs={120}>
-        {menu && (
-          <ContextMenu
-            x={menu.x}
-            y={menu.y}
-            items={menu.items}
-            onClose={menu.close}
-          />
-        )}
-      </Presence>
+      {/* On the body: a page in a document sits inside its zoom, which
+          would scale the menu's window coordinates a second time. */}
+      {createPortal(
+        <Presence show={menu !== null} exitMs={120}>
+          {menu && (
+            <ContextMenu
+              x={menu.x}
+              y={menu.y}
+              items={menu.items}
+              onClose={menu.close}
+            />
+          )}
+        </Presence>,
+        document.body,
+      )}
     </>
   );
 }
@@ -376,7 +451,7 @@ export function PluginCodeBlock({
     <PluginWebview
       id={record.id}
       className="plugin-code-block-frame"
-      fitHeight={MAX_CODE_BLOCK_HEIGHT}
+      fitHeight={codeBlockMax}
     />
   );
 }

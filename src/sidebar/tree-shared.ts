@@ -14,9 +14,6 @@ import { explainError } from "../utils/error-explain";
 /** The tree's order: by name, folders first, or newest first. */
 export type TreeSort = "name" | "modified";
 
-/** How far the pointer moves before a press on a row becomes a drag. */
-export const DRAG_START_PX = 5;
-
 /** What every row of the tree reads: the order and the filter, which
  *  folders to read again, and the desktop's right-click menu and drag. */
 export interface TreeShared {
@@ -49,6 +46,17 @@ export interface TreeShared {
   openInNewWindow: ((path: string) => void) | null;
   /** True once, for the click that ends a drag. */
   takeDragClick: () => boolean;
+  /** A new document or folder being named in place, in `dir`. */
+  draft: TreeDraft | null;
+  /** Its name, or null when it was given up. */
+  finishDraft: (name: string | null) => void;
+  /** What an empty folder says where new things can be made. */
+  draftHint: string | null;
+}
+
+export interface TreeDraft {
+  dir: string;
+  kind: "document" | "folder";
 }
 
 export const TreeContext = createContext<TreeShared | null>(null);
@@ -78,3 +86,7 @@ export function failureText(t: Strings, err: unknown, name: string): string {
     return t.treeNameTaken.replace("{name}", name);
   return t.treeActionFailed.replace("{reason}", explainError(err, t));
 }
+
+/** How a file chosen in the sidebar opens: to look (a click, the preview
+ *  tab), beside the one in front, or (none) in a tab of its own. */
+export type FileOpenHow = "preview" | "beside";

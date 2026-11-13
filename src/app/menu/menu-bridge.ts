@@ -1,3 +1,4 @@
+import { PLUGIN_SETTINGS } from "./plugin-menu";
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { useSyncExternalStore } from "react";
 import {
@@ -7,6 +8,7 @@ import {
 import {
   OPEN_AGENT_PANEL_EVENT,
   TRACK_CHANGES_EVENT,
+  SHOW_SIDEBAR_TAB_EVENT,
 } from "../../utils/events";
 import { menuIpc, windowIpc } from "../../platform/ipc";
 import { editInFocus } from "../../ui/edit-in-focus";
@@ -46,15 +48,20 @@ export interface MenuBridgeHandlers {
   /** Settings › Editor › Export, for a Pandoc export. */
   pandocSettings: PandocSettings;
   onOpenSettings: () => void;
-  onOpenPluginSettings: () => void;
+  /** Settings › Extensions › Plugins, at plugin `id`'s page if given. */
+  onOpenPluginSettings: (id?: string) => void;
   onToggleTypewriter: () => void;
   onToggleSidebar: () => void;
+  /** Opens the sidebar on the tab with this id. */
+  showSidebarTab: (id: string) => void;
   onToggleAgentPanel: () => void;
   /** Opens Textus AI's panel; left open if it is. */
   onOpenAgentPanel: () => void;
   onToggleTextusAi: () => void;
   onToggleSplitView: () => void;
   onToggleReadOnly: () => void;
+  /** View › Mode › Default: the rendered editor, the document writable. */
+  onViewModeDefault: () => void;
   onToggleZenMode: () => void;
   addBlankTab: () => void;
   openFileDialog: () => Promise<void>;
@@ -72,7 +79,7 @@ export interface MenuBridgeHandlers {
   startWelcomeTutorial: () => void;
   /** Help > Join the Community: the website's page in the UI's language. */
   openCommunity: () => void;
-  /** Help > Video Tutorials: the website's page in the UI's language. */
+  /** Help > Online Tutorials: the website's page in the UI's language. */
   openTutorials: () => void;
   /** The phone menu's Documents. */
   onOpenDocuments: () => void;
@@ -107,7 +114,11 @@ export function useMenuBridge(handlers: MenuBridgeHandlers): void {
         h().onOpenPluginSettings(),
       ),
       listenToThisWindow<string>("menu-plugin-command", (event) =>
-        runCommand(event.payload),
+        event.payload.startsWith(PLUGIN_SETTINGS)
+          ? h().onOpenPluginSettings(
+              event.payload.slice(PLUGIN_SETTINGS.length),
+            )
+          : runCommand(event.payload),
       ),
       // File > New Tab (menu.rs).
       listenToThisWindow("menu-new-file", () => h().addBlankTab()),
@@ -116,6 +127,12 @@ export function useMenuBridge(handlers: MenuBridgeHandlers): void {
         "menu-open-recent",
         (event) => void h().openRecentFile(event.payload),
       ),
+      // A project's documents from the start page, in order: the last in front.
+      listenToThisWindow<string[]>("open-project-documents", (event) => {
+        void (async () => {
+          for (const path of event.payload) await h().openRecentFile(path);
+        })();
+      }),
       listenToThisWindow("menu-open-folder", () => void h().openFolderDialog()),
       listenToThisWindow<string>("menu-open-recent-folder", (event) =>
         h().openFolder(event.payload),
@@ -187,6 +204,9 @@ export function useMenuBridge(handlers: MenuBridgeHandlers): void {
         h().onToggleSplitView(),
       ),
       listenToThisWindow("menu-toggle-read-only", () => h().onToggleReadOnly()),
+      listenToThisWindow("menu-view-mode-default", () =>
+        h().onViewModeDefault(),
+      ),
       listenToThisWindow("menu-toggle-zen-mode", () => h().onToggleZenMode()),
       listenToThisWindow(
         "menu-command-palette",
@@ -244,6 +264,16 @@ export function useMenuBridge(handlers: MenuBridgeHandlers): void {
           h().openHelpTab(event.payload);
       }),
     );
+  }, []);
+
+  // A plugin's layout.showSidebarTab.
+  useEffect(() => {
+    const show = (e: Event) => {
+      const id = (e as CustomEvent<unknown>).detail;
+      if (typeof id === "string") latest.current.showSidebarTab(id);
+    };
+    window.addEventListener(SHOW_SIDEBAR_TAB_EVENT, show);
+    return () => window.removeEventListener(SHOW_SIDEBAR_TAB_EVENT, show);
   }, []);
 
   // The native macOS menu bar is built in English; it takes the UI's

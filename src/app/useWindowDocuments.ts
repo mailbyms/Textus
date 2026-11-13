@@ -1,3 +1,4 @@
+import { useProjectTabs } from "./start-project";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   registerNoteCompletion,
@@ -67,6 +68,11 @@ export function useWindowDocuments({
   }, [showFiles, hasTree]);
   useWindowTitle(activeTitle);
   useSessionPaths(tabs);
+  useProjectTabs(
+    openFolder.folder,
+    tabs.map((tab) => tab.path),
+    activeTab.path,
+  );
   useSplitRestore(tabs, setActiveTabId);
 
   const dialogFilters = useMemo(
@@ -98,6 +104,7 @@ export function useWindowDocuments({
     activePath: activeTab.path,
     tabState,
     openPathInTab: opening.openPathInTab,
+    openFile: opening.openFile,
     // Defined below; read when a plugin asks.
     saveActiveTab: () => saving.saveTab(activeTab.id),
     closeActiveTab: () => requestCloseTab(activeTab.id),
@@ -114,14 +121,26 @@ export function useWindowDocuments({
     tutorial.start,
   );
 
-  const { updateTab } = tabState;
   const { evaluateTutorialDocumentChange } = shell;
   const handleChange = useCallback(
     (tabId: string, markdown: string) => {
-      updateTab(tabId, { content: markdown });
+      // Written in, a preview tab is kept.
+      setTabs((prev) =>
+        prev.map((tab) =>
+          tab.id !== tabId
+            ? tab
+            : {
+                ...tab,
+                content: markdown,
+                ...(tab.preview && markdown !== tab.savedContent
+                  ? { preview: false }
+                  : {}),
+              },
+        ),
+      );
       evaluateTutorialDocumentChange(tabId, markdown);
     },
-    [updateTab, evaluateTutorialDocumentChange],
+    [setTabs, evaluateTutorialDocumentChange],
   );
 
   const aiTitleFor = useDraftTitles(

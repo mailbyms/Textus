@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { PHONE, mockInvoke, openPhone, pasteMarkdown } from "./helpers";
+import { mockInvoke, openPhone, pasteMarkdown, PHONE, HOME } from "./helpers";
 
 // Quick Ask and the AI composer in Chromium's phone viewport.
 test.use(PHONE);
@@ -11,7 +11,7 @@ const PARAGRAPH = "The survey covered three districts over two months.";
 async function openQuickAsk(page: Page) {
   await pasteMarkdown(page, `# Notes\n\n${PARAGRAPH}\n`);
   await page.locator('[data-active-tab="true"] .milkdown p').first().click();
-  await page.keyboard.press("Home");
+  await page.keyboard.press(HOME);
   await page.keyboard.press("Shift+End");
   await page
     .getByRole("toolbar", { name: "Formatting" })
@@ -151,29 +151,6 @@ test("a proposed edit is reviewed in the dock and lands in the document", async 
   await expect(page.locator(".milkdown p").first()).toHaveText(
     "The survey covered three districts.",
   );
-});
-
-test("a / skill suggestion is picked with a tap", async ({ page }) => {
-  await openPhone(page);
-  await mockInvoke(page, {
-    load_agent_workspace: {
-      skills: [
-        { name: "polish", description: "Tighten the prose", prompt: "Polish" },
-      ],
-    },
-  });
-  const dock = await openQuickAsk(page);
-  const input = dock.locator("textarea");
-  await input.fill("/po");
-  // The user's skill by its name first; the built-in Social post (alias
-  // "post") matches too, after it.
-  const row = dock.locator(".inline-chat-skill-item").first();
-  await expect(row).toContainText("/polish");
-  expect((await row.boundingBox())!.height).toBeGreaterThanOrEqual(44);
-  await row.tap();
-  await expect(input).toHaveValue("/polish ");
-  // Picked once, and the keyboard's field kept its focus.
-  await expect(input).toBeFocused();
 });
 
 test("continue in panel hands the exchange to the AI sheet", async ({

@@ -8,148 +8,24 @@
 #[cfg(test)]
 pub(crate) use super::checks::prose_length;
 use super::checks::*;
-pub(crate) use super::checks::{
-    all_soft, cited_link, length, most, problems, Problem, WEB_FIGURE_MARK,
-};
+pub(crate) use super::checks::{all_soft, cited_link, length, problems, Problem, WEB_FIGURE_MARK};
 use super::figures::Draw;
+use super::grounding::{figures_by_source, unsupported_figures};
 use super::handover::{hand_over_checked, Checked, Task};
-use super::prompts;
-use super::research::Model;
 use super::stream::{string_value, LastSent};
-use super::{Dossier, FigureKind, FigurePlan, Outline, OutlineSection, Paper, PaperEvent};
-use aicompat::agent::{AgentTurn, ProviderEvent, ToolSpec};
+use super::{Dossier, Outline, OutlineSection, Paper, PaperEvent};
+use crate::ai::agent::Model;
+use aicompat::agent::{AgentTurn, ProviderEvent};
 use futures_util::stream::{self, StreamExt};
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::sync::Mutex;
 use std::time::Duration;
 
 pub(crate) const SUBMIT_SECTION_TOOL: &str = "submit_section";
 
+pub(crate) use super::brief::{revision_message, writer_instructions};
+use super::brief::{submit_section_spec, writer_message};
 use super::tuning::WRITER_STEPS;
-/// How each kind of figure is written into the section.
-fn figure_line(figure: &FigurePlan) -> String {
-    let how = prompts::get(match figure.kind {
-        FigureKind::Mermaid => "draft.figure.mermaid",
-        FigureKind::Chart => "draft.figure.chart",
-        FigureKind::Generated => "draft.figure.generated",
-        FigureKind::Web => "draft.figure.web",
-    });
-    format!("- {} - as {how}", figure.spec)
-}
-
-/// The writer's message: its section, the rest of the paper in outline,
-/// and its notes.
-fn writer_message(paper: &Paper, outline: &Outline, index: usize, dossier: &Dossier) -> String {
-    let section = &outline.sections[index];
-    let others: Vec<String> = outline
-        .sections
-        .iter()
-        .enumerate()
-        .map(|(i, s)| {
-            let mark = if i == index { "  <- yours" } else { "" };
-            format!("{}. {} - {}{mark}", i + 1, s.title, s.key_points.join("; "))
-        })
-        .collect();
-    let notes: Vec<String> = dossier
-        .notes
-        .iter()
-        .filter(|n| section.evidence.contains(&n.id))
-        .map(|n| {
-            let cite: Vec<String> = n
-                .sources
-                .iter()
-                .filter_map(|s| dossier.sources.iter().find(|x| x.n == *s))
-                .map(|s| format!("[{}]({})", s.n, s.url))
-                .collect();
-            let quote = n
-                .quote
-                .as_deref()
-                .map(|q| format!(" Quote: \"{q}\""))
-                .unwrap_or_default();
-            format!(
-                "- {} Evidence: {}{quote} Sources: {}",
-                n.claim,
-                n.evidence,
-                cite.join(" ")
-            )
-        })
-        .collect();
-    let figures: Vec<String> = section.figures.iter().map(figure_line).collect();
-    let listed = |lines: Vec<String>| {
-        if lines.is_empty() {
-            "(none)".to_string()
-        } else {
-            lines.join("\n")
-        }
-    };
-    prompts::fill(
-        "draft.message",
-        &[
-            ("topic", &paper.topic),
-            ("thesis", &outline.thesis),
-            ("sections", &others.join("\n")),
-            ("title", &section.title),
-            ("target", &section.target_words),
-            ("most", &most(section.target_words)),
-            ("points", &section.key_points.join("\n- ")),
-            ("notes", &listed(notes)),
-            ("figures", &listed(figures)),
-        ],
-    )
-}
-
-/// A reviser's message: the writer's message, its earlier draft and the
-/// reviewer's points against it.
-pub(crate) fn revision_message(
-    paper: &Paper,
-    outline: &Outline,
-    index: usize,
-    dossier: &Dossier,
-    earlier: &str,
-    points: &[String],
-) -> String {
-    prompts::fill(
-        "draft.revision",
-        &[
-            ("message", &writer_message(paper, outline, index, dossier)),
-            ("earlier", &earlier),
-            ("points", &points.join("\n- ")),
-        ],
-    )
-}
-
-fn submit_section_spec() -> ToolSpec {
-    ToolSpec {
-        name: SUBMIT_SECTION_TOOL.into(),
-        description: "Hand over your section, whole, as Markdown without its own heading. It is checked - length, citations, figures - and if anything is wrong you are told what; send the whole section again, corrected.".into(),
-        parameters: json!({
-            "type": "object",
-            "properties": {"markdown": {"type": "string"}},
-            "required": ["markdown"]
-        }),
-    }
-}
-
-/// What a section's writer is told.
-pub(crate) fn writer_instructions(paper: &Paper) -> String {
-    let profile = paper.genre.profile();
-    let unit = if length("字", &paper.language) == 1 {
-        "characters"
-    } else {
-        "words"
-    };
-    prompts::fill(
-        "draft.instructions",
-        &[
-            ("genre", &profile.name),
-            ("language", &paper.language),
-            ("voice", &profile.voice),
-            ("cite", &profile.cite),
-            ("unit", &unit),
-        ],
-    )
-}
-
 /// Section `index` written: its Markdown under its heading.
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn write_section(
@@ -176,6 +52,12 @@ pub(crate) async fn write_section(
         .filter_map(|s| dossier.sources.iter().find(|x| x.n == *s))
         .map(|s| (s.n, s.url.clone()))
         .collect();
+    let given = &figures_by_source(
+        dossier
+            .notes
+            .iter()
+            .filter(|n| section.evidence.contains(&n.id)),
+    );
     // The latest section handed over whose problems were all soft: kept at
     // the end if no try holds.
     let soft: Mutex<Option<String>> = Mutex::new(None);
@@ -193,6 +75,7 @@ pub(crate) async fn write_section(
         // Drawn even when other things are wrong, so the writer fixes all
         // at once.
         wrong.extend(super::figures::undrawn(draw, &markdown).await);
+        wrong.extend(unsupported_figures(&markdown, given));
         if !markdown.is_empty() {
             *last.lock().unwrap() = Some(markdown.clone());
         }

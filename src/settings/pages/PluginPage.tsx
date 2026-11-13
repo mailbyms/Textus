@@ -15,8 +15,8 @@ import {
   revokePermission,
   uninstallPlugin,
   type PluginRecord,
-  runsHere,
 } from "../../plugins/manager";
+import { runsHere } from "../../plugins/plugin-platform";
 import {
   requirementLabel,
   requirementMet,
@@ -60,12 +60,15 @@ export function Byline({
   manifest,
   official,
   dev,
+  madeHere,
   t,
   children,
 }: {
   manifest: PluginManifest;
   official: boolean;
   dev?: boolean;
+  /** Made by Textus AI in Create. */
+  madeHere?: boolean;
   t: Strings;
   /** More about it after the version: its installs. */
   children?: ReactNode;
@@ -73,6 +76,7 @@ export function Byline({
   return (
     <div className="plugin-byline">
       {official && <span className="plugin-official">{t.pluginOfficial}</span>}
+      {madeHere && <span className="plugin-official">{t.madeByTextusAi}</span>}
       <span>
         {t.pluginBy.replace("{author}", manifest.author || manifest.publisher)}
       </span>
@@ -123,7 +127,9 @@ export function PluginPage({
         ‹ {t.pluginBackToList}
       </button>
       <div className="settings-group-body plugin-page-head">
-        <label className="settings-row plugin-page-title-row">
+        {/* Only the switch turns the plugin on or off: its name, its
+            description and its links are for reading and clicking. */}
+        <div className="settings-row plugin-page-title-row">
           <PluginIcon
             id={record.id}
             manifest={manifest}
@@ -154,7 +160,7 @@ export function PluginPage({
             checked={on}
             onChange={(e) => onEnable(e.target.checked)}
           />
-        </label>
+        </div>
         <div className="settings-row plugin-guide-row">
           {manifest && (
             <button

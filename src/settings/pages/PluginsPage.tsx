@@ -1,3 +1,4 @@
+import { takeStartPlugin } from "./extensions-tab";
 import { useMutedCards } from "../../plugins/store/usePluginCard";
 import {
   useEffect,
@@ -34,6 +35,8 @@ import {
 } from "../../plugins/store/catalog";
 import { pluginMatches } from "../../plugins/store/plugin-records";
 import { PluginIcon } from "./PluginArt";
+import { useSettings } from "../../prefs/SettingsContext";
+import { madeByAi } from "../../ai/chat/creations";
 
 /**
  * Settings › Extensions › Plugins. Nothing comes installed: one switch for
@@ -43,10 +46,11 @@ import { PluginIcon } from "./PluginArt";
  */
 export function PluginsPage({ t }: SettingsPageProps) {
   const snapshot = useSyncExternalStore(subscribePlugins, pluginsSnapshot);
+  const { settings } = useSettings();
   const catalog = useSyncExternalStore(subscribeCatalog, catalogSnapshot);
-  const { installing, install, enable, attempt, actionFor } =
+  const { installing, install, updateAll, enable, attempt, actionFor } =
     usePluginActions(t);
-  const [open, setOpen] = useState<string | null>(null);
+  const [open, setOpen] = useState<string | null>(takeStartPlugin);
   const [openItem, setOpenItem] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   useEffect(() => {
@@ -55,11 +59,20 @@ export function PluginsPage({ t }: SettingsPageProps) {
 
   const installFile = (folder: boolean) =>
     attempt(async () => {
-      const path = await pluginsIpc.pickPackage(folder, t.pluginPackageFilter);
-      if (!path) return;
-      if (folder) return setOpen(await loadDevPlugin(path));
-      // Installed, its page, with its README.
-      setOpen(await installPlugin(path));
+      const paths =
+        (await pluginsIpc.pickPackage(folder, t.pluginPackageFilter)) ?? [];
+      if (!paths.length) return;
+      if (folder) return setOpen(await loadDevPlugin(paths[0]));
+      // Several installed one after another; one alone opens its page,
+      // with its README.
+      if (paths.length === 1) return setOpen(await installPlugin(paths[0]));
+      // One that fails doesn't stop the others: each failure is told after.
+      const failed: string[] = [];
+      for (const path of paths)
+        await installPlugin(path).catch((e: unknown) =>
+          failed.push(`${path.split(/[\\/]/).pop()}: ${String(e)}`),
+        );
+      if (failed.length) throw new Error(failed.join("\n"));
     });
 
   // A catalog plugin installed from its page goes on as the installed
@@ -81,6 +94,7 @@ export function PluginsPage({ t }: SettingsPageProps) {
       record={record}
       t={t}
       allOn={snapshot.allOn}
+      madeHere={madeByAi(settings.creations, "plugin", record.id)}
       action={actionFor(record.id)}
       onOpen={() => setOpen(record.id)}
     />
@@ -90,6 +104,13 @@ export function PluginsPage({ t }: SettingsPageProps) {
       ? catalog.items.find((i) => i.id === openItem)
       : undefined;
   const installed = new Set(snapshot.records.map((r) => r.id));
+  // Two or more with updates: one button takes them all (one shows its own).
+  const updates =
+    catalog.status === "ready"
+      ? catalog.items.filter(
+          (i) => installed.has(i.id) && updateFor(i.id, catalog),
+        )
+      : [];
   // Installed from its page: the installed plugin's page instead.
   if (item && !installed.has(item.id))
     return (
@@ -169,6 +190,18 @@ export function PluginsPage({ t }: SettingsPageProps) {
       onQuery={setQuery}
       installedTitle={t.pluginsInstalledGroup}
       installedCount={snapshot.records.length}
+      installedAction={
+        updates.length > 1 && (
+          <button
+            type="button"
+            className="text-button extensions-title-action"
+            disabled={installing !== null}
+            onClick={() => void updateAll(updates)}
+          >
+            {t.pluginsUpdateAll.replace("{count}", String(updates.length))}
+          </button>
+        )
+      }
       installed={
         snapshot.records.length ? (
           <>
@@ -186,7 +219,9 @@ export function PluginsPage({ t }: SettingsPageProps) {
             )}
           </>
         ) : (
-          <p className="plugin-empty">{t.pluginsNone}</p>
+          <p className="plugin-empty">
+            {t.pluginsInstalledNone.replace("{section}", t.extensionsAvailable)}
+          </p>
         )
       }
       available={
@@ -240,12 +275,14 @@ function PluginCard({
   record,
   t,
   allOn,
+  madeHere,
   action,
   onOpen,
 }: {
   record: PluginRecord;
   t: Strings;
   allOn: boolean;
+  madeHere: boolean;
   action: ReactNode;
   onOpen: () => void;
 }) {
@@ -277,6 +314,7 @@ function PluginCard({
               manifest={manifest}
               official={record.official}
               dev={record.origin === "dev"}
+              madeHere={madeHere}
               t={t}
             />
           )}

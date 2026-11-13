@@ -1,3 +1,4 @@
+import { addBlockFoldMarkup, showBlockFold } from "../fold/block-fold";
 import { fs } from "../../platform/ipc";
 import { embedFolded } from "./embed-folds";
 import { currentStrings } from "../../i18n/current";
@@ -10,6 +11,7 @@ import { basename, isNoteFile, noteStem } from "../../utils/path";
 import { showDocImage } from "../images/image-plugin";
 import { renderDocumentHtml } from "../markdown/render-html";
 import { embedProvider, type EmbedKind } from "./embed-sources";
+import { drawEmbeddedBlocks } from "./embed-plugin-blocks";
 
 /**
  * A note's, a section's or a block's `![[embed]]`, drawn read-only from what
@@ -150,22 +152,14 @@ export async function fillEmbed(
   if (place.signal.aborted) return;
   if (!content) return chip(el, name, true);
 
-  const title = document.createElement("span");
-  title.className = "note-embed-title";
   const foldKey = `${place.docPath}\n${found.path}#${heading ?? ""}^${link.block ?? ""}`;
-  const fold = document.createElement("span");
-  fold.className = "note-embed-fold";
-  fold.setAttribute("role", "button");
-  fold.tabIndex = 0;
-  fold.dataset.key = foldKey;
-  fold.append(
-    Object.assign(document.createElement("span"), {
-      className: "disclosure-caret",
-    }),
-  );
-  const named = document.createElement("span");
-  named.textContent = content.title || name;
-  title.append(fold, named);
+  // To open where it comes from, on hover at its top right.
+  const open = document.createElement("button");
+  open.type = "button";
+  open.className = "note-embed-open";
+  open.textContent = "↗";
+  open.setAttribute("aria-label", currentStrings().hoverOpen);
+  open.title = content.title || name;
   const body = document.createElement("span");
   body.className = "note-embed-body";
   body.innerHTML = renderDocumentHtml(content.markdown);
@@ -173,6 +167,7 @@ export async function fillEmbed(
     const src = img.getAttribute("src");
     if (src) showDocImage(img, src, found.path);
   }
+  drawEmbeddedBlocks(body, found.path, place.signal);
   replaceText(body, WIKILINK, (source) => {
     const span = document.createElement("span");
     span.className = "wikilink";
@@ -188,8 +183,11 @@ export async function fillEmbed(
   el.className = "note-embed";
   el.dataset.path = found.path;
   el.dataset.anchor = link.block ? `^${link.block}` : (heading ?? "");
-  el.replaceChildren(title, body);
-  setFolded(el, embedFolded(foldKey));
+  // Its content alone, as one block: folded by the margin's caret, as
+  // every drawn block is, to a line with its name.
+  el.replaceChildren(open, body);
+  addBlockFoldMarkup(el, content.title || name, foldKey);
+  showBlockFold(el, embedFolded(foldKey));
   const below = {
     ...place,
     docPath: found.path,
@@ -207,17 +205,4 @@ export async function fillEmbed(
       return fillEmbed(span, inner, below);
     }),
   );
-}
-
-/** Shows `el`'s body or folds it under its title, the toggle saying which. */
-export function setFolded(el: HTMLElement, folded: boolean): void {
-  if (folded) el.dataset.folded = "";
-  else delete el.dataset.folded;
-  const fold = el.querySelector<HTMLElement>(
-    ":scope > .note-embed-title > .note-embed-fold",
-  );
-  if (!fold) return;
-  const t = currentStrings();
-  fold.setAttribute("aria-expanded", String(!folded));
-  fold.setAttribute("aria-label", folded ? t.outlineExpand : t.outlineCollapse);
 }

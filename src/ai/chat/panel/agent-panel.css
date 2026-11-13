@@ -6,8 +6,8 @@
   flex-shrink: 0;
   display: flex;
   min-width: 0;
-  /* The window bar is a fixed 28px strip over the top of the layout. */
-  padding-top: 28px;
+  /* The window bar is a fixed strip over the top of the layout. */
+  padding-top: var(--window-bar-height);
   background: var(--ui-surface);
   border-left: 1px solid var(--ui-border);
   color: var(--ui-text);
@@ -15,6 +15,25 @@
      reflowed the document every frame. .app-shell is overflow: clip, so
      focusing the composer can't scroll the window mid-slide. */
   animation: motion-nudge-in-end var(--dur-slow) var(--ease-out);
+}
+
+/* On the desktop the window bar's right end (word count, window buttons)
+   belongs to the page: the panel's fill and edge start under it. */
+:root:not([data-window-chrome="mobile"]) .agent-panel {
+  border-left: none;
+  background: linear-gradient(
+    transparent var(--window-bar-height),
+    var(--ui-surface) var(--window-bar-height)
+  );
+}
+:root:not([data-window-chrome="mobile"]) .agent-panel::before {
+  content: "";
+  position: absolute;
+  top: var(--window-bar-height);
+  bottom: 0;
+  left: 0;
+  border-left: 1px solid var(--ui-border);
+  pointer-events: none;
 }
 
 /* It leaves the way it came; the editor takes the room back once it has
@@ -36,7 +55,7 @@
 
 /* Its resize handle, astride the left edge below the window bar. */
 .agent-panel-resizer {
-  top: 28px;
+  top: var(--window-bar-height);
   left: -3px;
 }
 
@@ -54,7 +73,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 40px;
+  min-height: calc(40px * var(--chrome-scale));
   padding: 4px 8px 4px 12px;
   border-bottom: 1px solid var(--chat-hairline, var(--ui-border));
 }
@@ -347,7 +366,7 @@
 
 .agent-panel-placeholder {
   position: absolute;
-  inset: 28px 0 0;
+  inset: var(--window-bar-height) 0 0;
   display: flex;
   flex-direction: column;
   align-items: center;

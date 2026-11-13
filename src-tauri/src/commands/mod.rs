@@ -42,6 +42,7 @@ pub mod themes;
 pub mod tree_ops;
 pub mod undo_files;
 pub mod vault;
+pub mod web_asset;
 #[cfg(desktop)]
 pub mod web_page;
 pub mod word_import;

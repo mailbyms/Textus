@@ -4,17 +4,19 @@ import { detectLang, isLang, localeOf, type Lang } from "../i18n/strings";
 import { isRecord, type Raw } from "./settings-sync";
 import { storedImageFolder } from "./image-folder";
 import { storedShortcuts } from "./shortcut-defaults";
+import { DEFAULT_SETTINGS, type Settings } from "./settings-types";
 import {
   COLOR_SWATCH_MODES,
   type ColorSwatchMode,
-  DEFAULT_SETTINGS,
   DIAGRAM_ENGINES,
   type DiagramEngine,
   IMAGE_HOSTS,
   type ImageHost,
   REVISION_DISPLAYS,
   type RevisionDisplay,
-  type Settings,
+  type Creation,
+  CREATION_KINDS,
+  type CreationKind,
   THEME_MODES,
   type ThemeMode,
   UI_TEXT_SCALES,
@@ -28,7 +30,7 @@ import {
   LETTER_SPACING_BY,
   PANDOC_ARGS_FORMATS,
   storedAgentMode,
-} from "./settings-types";
+} from "./settings-values";
 
 /** Saved settings read back whole: a missing, ill-typed or unknown value
  *  takes its default, and fields this version doesn't know are kept. */
@@ -65,6 +67,20 @@ function pandocArgs(value: unknown): Settings["pandocArgs"] {
         ? [[format, args.filter((a): a is string => typeof a === "string")]]
         : [];
     }),
+  );
+}
+
+/** The stored list of what Create made: well-formed entries only. */
+export function storedCreations(value: unknown): Creation[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter(
+    (c): c is Creation =>
+      isRecord(c) &&
+      CREATION_KINDS.includes(c.kind as CreationKind) &&
+      typeof c.id === "string" &&
+      c.id !== "" &&
+      typeof c.name === "string" &&
+      typeof c.at === "number",
   );
 }
 
@@ -122,6 +138,7 @@ function readSettings(parsed: Raw | null): Settings {
       commandShortcuts: stringMap(parsed.commandShortcuts),
       mcpServers: normaliseMcpServers(parsed.mcpServers),
       pandocArgs: pandocArgs(parsed.pandocArgs),
+      creations: storedCreations(parsed.creations),
       plugins: isRecord(parsed.plugins)
         ? (Object.fromEntries(
             Object.entries(parsed.plugins).filter(([, v]) => isRecord(v)),

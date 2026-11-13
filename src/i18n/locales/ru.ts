@@ -122,6 +122,8 @@ export default {
   editorLabel: "Документ",
   diagramZoom: "Увеличить диаграмму",
   codeBlockEditSource: "Изменить исходный код",
+  codeBlockDone: "Завершить правку",
+  codeBlockDelete: "Удалить блок",
   diagramViewerLabel: "Диаграмма",
   pictureZoom: "Увеличить изображение",
   pictureViewerLabel: "Изображение",
@@ -300,6 +302,13 @@ export default {
     "После каждого ответа над полем ввода появляются кнопки — до трёх вариантов того, что вы, скорее всего, напишете дальше, а самый вероятный ещё и серым в самом поле; щелчок отправляет вариант, Tab подставляет серый. Это ещё один короткий запрос.",
   composerSuggestionTab: "Tab",
   composerFollowUps: "Предложенные следующие сообщения",
+  researchSubHelpersLabel: "Исследование: отдавать части вопроса помощникам",
+  researchSubHelpersHint:
+    "В режиме исследования помощник, изучающий вопрос, может передать более узкую часть своему помощнику. Подробнее, но медленнее, и вызовов модели на четверть–половину больше.",
+  researchCheckClaimsLabel:
+    "Исследование: проверять каждое цитируемое предложение",
+  researchCheckClaimsHint:
+    "Перед правкой черновика каждое предложение со ссылкой сравнивается с заметками об этом источнике, и то, что говорит больше них, переписывается. Тщательнее, но на раздел уходит ещё один вызов модели.",
   rememberAutomaticallyLabel: "Запоминать автоматически",
   rememberAutomaticallyHint: `${AI_NAME} запоминает ваши требования и манеру письма для следующих разговоров. Посмотреть, изменить или отменить это можно в разделе «Проект» панели ИИ. После каждого ответа он ещё раз коротко спрашивает ту же модель, что запомнить.`,
   toolRemember: "Запоминаю",
@@ -365,6 +374,8 @@ export default {
     "Он рисует прямо на странице, а плагин так не может: ничего не появится.",
   chatPluginCheckPermission:
     "Он использует {permission}, не запросив это разрешение.",
+  chatPluginCheckWhen:
+    "Условие пункта меню читает {key}, которого в Textus нет: пункт никогда не появится.",
   chatPluginCheckUnregistered: "Он объявляет {id}, но нигде не регистрирует.",
   chatPluginRunError: "Остановился с ошибкой: {error}",
   chatPluginFix: "Исправить с ИИ",
@@ -388,6 +399,7 @@ export default {
   toolSearchPapers: "Поиск статей: «{arg}»",
   toolSearchReferences: "Поиск в источниках: «{arg}»",
   toolAddNote: "Записано: {arg}",
+  toolDelegateTask: "Передано: {arg}",
   paperOutlineTitle: "План",
   paperOutlineTotal: "Всего около {n} {unit}",
   paperOutlineThesis: "Тезис",
@@ -477,6 +489,8 @@ export default {
   webSources: "Источники",
   proposalSourcesAsFootnotes: "Добавить источники как сноски",
   menuToggleSplitView: "Исходник и просмотр",
+  menuViewMode: "Режим",
+  menuViewModeDefault: "Обычный",
   splitPreview: "Предпросмотр",
   menuToggleZenMode: "Режим дзен",
   menuSplitRight: "Разделить вправо",
@@ -560,6 +574,7 @@ export default {
   treeSearchScopeDocuments: "Только документы",
   treeNewDocument: "Новый документ",
   treeNewFolder: "Новая папка",
+  treeEmptyHint: "Дважды щёлкните здесь, чтобы создать документ.",
   treeNewDocumentPrompt: "Название нового документа",
   treeNewFolderPrompt: "Название новой папки",
   treeNewDocumentDefault: "Без названия",
@@ -734,6 +749,10 @@ export default {
   agentSkillsBuiltinTag: "Встроенный",
   agentSkillsOpen: "Открыть",
   agentSkillsReset: "Сбросить",
+  madeByTextusAi: `Сделано с ${AI_NAME}`,
+  skillDelete: "Удалить",
+  skillDeleteAsk: "Удалить «{name}»? Его файлы попадут в Корзину.",
+  skillDeleteAskMobile: "Удалить «{name}»?",
   agentSkillsResetConfirm:
     "Удалить вашу копию навыка «{name}» и вернуться к встроенному?",
   agentSkillsShadows: "Заменяет встроенный навык",
@@ -1080,9 +1099,9 @@ export default {
   menuCloseTab: "Закрыть вкладку",
   menuReopenClosedTab: "Открыть закрытую вкладку",
   readOnlyRefused:
-    "Документ только для чтения. Чтобы изменить его, выключите Вид › Только чтение.",
-  menuToggleReadOnly: "Только чтение",
-  readOnlyLock: "Только чтение: нажмите, чтобы разрешить изменения",
+    "Документ в режиме чтения. Чтобы изменить его, выберите «Вид › Режим › Обычный».",
+  menuToggleReadOnly: "Режим чтения",
+  readOnlyLock: "Режим чтения: нажмите, чтобы разрешить изменения",
   closeOtherTabs: "Закрыть другие",
   closeTabsToLeft: "Закрыть вкладки слева",
   closeTabsToRight: "Закрыть вкладки справа",
@@ -1150,7 +1169,7 @@ export default {
   reportLimit:
     "Сегодня вы уже отправили несколько сообщений. Попробуйте завтра или отправьте его на GitHub.",
   reportFailed: "Не удалось отправить.",
-  menuHelpTutorials: "Видеоуроки",
+  menuHelpTutorials: "Онлайн-уроки",
   windowMinimize: "Свернуть",
   windowMaximize: "Развернуть",
   windowRestore: "Свернуть в окно",
@@ -1237,6 +1256,11 @@ export default {
   imageAlignLabel: "Изображения на отдельной строке",
   imageAlignCenter: "По центру",
   imageAlignLeft: "Слева",
+  embedDisplayLabel: "Встроенные заметки",
+  embedDisplayExpand: "Показывать целиком",
+  embedDisplayCard: "Карточкой-ссылкой",
+  embedBlockCard: "{0} · нажмите, чтобы показать",
+  embedBlockShow: "Показать",
   docTextSizeLabel: "Размер текста",
   docTextSizeAuto: "Как в теме",
   docTextLabel: "Текст документа",
@@ -1267,6 +1291,8 @@ export default {
   closeLastWindow: "Закрыть окно",
   closeLastStartPage: "Показать начальную страницу",
   startPageRecentProjects: "Недавние проекты",
+  startPagePickDocument:
+    "Выберите документ из {folder} на боковой панели, чтобы начать.",
   startPageRecentFiles: "Недавние файлы",
   autoSuggestFilenameLabel: "Предлагать имя при сохранении нового файла",
   autosaveLabel: "Сохранять автоматически",
@@ -1348,7 +1374,7 @@ export default {
     "В конце введите `Главное в первой фразе то, что`, сделайте паузу и коснитесь серого текста",
   tutorialDoneTitle: "Готово",
   tutorialDoneBody:
-    "Теперь пишите своё; таблицы, формулы, темы, рецензирование и остальное — в Видеоуроках.",
+    "Теперь пишите своё; таблицы, формулы, темы, рецензирование и остальное — в Онлайн-уроках.",
   tutorialDoneMemory: `${AI_NAME} со временем запоминает ваши требования и стиль; загляните в «Проект» — кнопку с папкой в панели ИИ.`,
   closePromptMessage: "В документе есть несохранённые изменения.",
   closePromptSave: "Сохранить",
@@ -1455,10 +1481,6 @@ export default {
   privacyChatHistoryToggle: "Сохранять диалоги",
   privacyChatHistoryClearHint:
     "Удаляет все сохранённые диалоги. Это действие нельзя отменить.",
-  privacyClipboardHistoryLabel: "История буфера обмена",
-  privacyClipboardHistoryToggle: "Сохранять историю буфера обмена",
-  privacyClipboardHistoryClearHint:
-    "Удаляет всё из истории буфера обмена. Это действие нельзя отменить.",
   privacyDraftRecoveryLabel: "Восстановление черновиков",
   privacyDraftRecoveryToggle: "Восстанавливать несохранённое после сбоя",
   privacyKeepUnsavedToggle:
@@ -1469,12 +1491,7 @@ export default {
     "Удаляет все снимки, которые сейчас хранятся на диске. Это действие нельзя отменить.",
   privacyClearButton: "Очистить",
   privacyClearChatHistory: "Очистить историю чатов",
-  privacyClearClipboard: "Очистить историю буфера обмена",
   privacyClearDrafts: "Удалить черновики восстановления",
-  clipboardTab: "Буфер обмена",
-  clipboardEmpty: "Здесь появится скопированный и вставленный текст.",
-  clipboardClear: "Очистить",
-  clipboardCopy: "Скопировать",
   clipboardInsertHint: "Нажмите, чтобы вставить у курсора",
   exportNeedsWysiwyg:
     "Экспорт в HTML использует визуальный режим. Сначала выйдите из режима исходного кода, затем повторите экспорт.",
@@ -1607,6 +1624,7 @@ export default {
   pluginsCatalogKept:
     "Показан список с прошлого раза - новый получить не удалось: {reason}",
   pluginInstall: "Установить",
+  pluginNeedsTextus: "Нужен Textus {version}",
   pluginInstalling: "Установка…",
   pluginsSortLabel: "Сортировка",
   pluginsSortPopular: "Самые популярные",
@@ -1618,6 +1636,8 @@ export default {
   pluginUpdatedOn: "Обновлён {date}",
   pluginReadmeLabel: "О плагине {name}",
   pluginUpdate: "Обновить до {version}",
+  pluginsUpdateAll: "Обновить все ({count})",
+  pluginsUpdateAllFailed: "Эти плагины не обновились: {names}.",
   pluginOfficial: "Официальный",
   pluginBy: "автор: {author}",
   pluginOpenDetails: "{name}: подробности и настройки",
@@ -1660,6 +1680,8 @@ export default {
   pluginsInstallHelp:
     "Пакет плагина (.textusplugin) копируется в Textus. Папка плагина загружается на месте — чтобы попробовать плагин, который вы пишете; перезагружается оттуда же.",
   pluginsInstallFile: "Установить из файла…",
+  pluginFormPrevMonth: "Предыдущий месяц",
+  pluginFormNextMonth: "Следующий месяц",
   pluginsLoadFolder: "Загрузить папку плагина…",
   pluginsOpenScripts: "Открыть папку скриптов",
   pluginPackageFilter: "Плагин Textus",
@@ -1667,6 +1689,7 @@ export default {
   pluginOpenInstall: "Установить и открыть",
   pluginOpenTurnOnButton: "Включить и открыть",
   pluginCardLine: "Рекомендуемый плагин: {name}",
+  pluginCardMovedLine: "{name} теперь плагин",
   conventionsCardLine:
     "Настройки {app} этой папки сохраняют изображения в {folder}",
   conventionsCardDetails:
@@ -1680,7 +1703,10 @@ export default {
   pluginCardsRestore: "Показать снова",
   pluginScreenshot: "{name} в работе",
   pluginsMine: "Созданные вами",
-  pluginsNone: "Пока нет.",
+  pluginsInstalledNone:
+    "Плагины ещё не установлены. Выберите один в разделе «{section}» ниже.",
+  skillsInstalledNone:
+    "Навыки ещё не добавлены. Выберите один в разделе «{section}» ниже или создайте свой.",
   pluginStatusBroken: "Не удаётся прочитать: {reason}",
   pluginStatusDesktopOnly:
     "Работает только на компьютере, не на iPhone и iPad.",
@@ -1750,6 +1776,8 @@ export default {
   pluginPermNetworkAny: "Подключаться к любым сайтам",
   menuPlugins: "Плагины",
   menuManagePlugins: "Управление плагинами…",
+  menuPluginSettings: "Настройки…",
+  menuPluginSettingsOf: "Настройки {name}…",
   menuNoPluginCommands: "Нет команд плагинов",
   webPageAddress: "Адрес",
   webPageReload: "Обновить",

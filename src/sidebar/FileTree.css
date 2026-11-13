@@ -76,7 +76,7 @@
 }
 
 .tree-root-label {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -100,6 +100,8 @@
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  /* Gives way as the folder's name does, never to a letter or two: a
+     short parent ("work") stays whole. */
   flex-shrink: 1;
   min-width: 0;
   max-width: 45%;
@@ -125,7 +127,7 @@
 }
 
 .tree-crumb-name {
-  min-width: 0;
+  min-width: min(4em, 100%);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -152,15 +154,6 @@
 .tree-body-drop {
   background: var(--ui-selected);
   box-shadow: inset 0 0 0 1px var(--ui-accent);
-}
-
-.tree-drag-ghost {
-  position: fixed;
-  z-index: var(--z-popover);
-  padding: 4px 8px;
-  font-size: var(--text-footnote);
-  pointer-events: none;
-  white-space: nowrap;
 }
 
 /* The file-name search at the top of the Files tab. */
@@ -327,4 +320,31 @@
 .tree-row-ignored .tree-label,
 .tree-row-ignored .tree-icon {
   opacity: 0.5;
+}
+
+/* A new entry's name, typed in place: the row stays a row, the field
+   is its label. */
+.tree-row-draft,
+.tree-row-draft:hover {
+  cursor: default;
+  background: none;
+}
+
+.tree-draft-input {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0 4px;
+  border: 1px solid var(--ui-accent);
+  border-radius: var(--shape-xs);
+  background: var(--ui-bg);
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
+
+.tree-empty-hint {
+  margin: 8px;
+  color: var(--ui-muted);
+  font-size: var(--text-footnote);
 }

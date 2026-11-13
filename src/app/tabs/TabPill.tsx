@@ -1,7 +1,9 @@
+import { scaledPx } from "../../ui/chrome-scale";
 import { useEffect, useRef } from "react";
 import { CloseIcon } from "../../ui/icons";
 import { measure, play } from "../../ui/flip";
 import { Tooltip } from "../../ui/Tooltip";
+import { dropIndex, makeRoom, SLIDE } from "../../ui/pointer-drag";
 import { iosFiles } from "../../platform/ios-files";
 import { isIOSApp } from "../../platform/capabilities";
 
@@ -14,6 +16,8 @@ export interface TabInfo {
   // Display name: filename, "Untitled", or a Help document's title.
   title: string;
   dirty: boolean;
+  /** Opened to look (DocTab.preview): its title in italics. */
+  preview?: boolean;
 }
 
 // Drag distances to leave the bar (vertical) or start a reorder
@@ -24,10 +28,6 @@ const REORDER_THRESHOLD_PX = 5;
 // move scrolls the bar.
 const LIFT_MS = 300;
 const LIFT_SLOP_PX = 8;
-
-// One slide for every pill making way, so overlapping moves read as one.
-export const SLIDE =
-  "transform calc(var(--dur-base) * var(--motion-travel)) var(--ease-in-out)";
 
 /** Another tab bar than `own` under (x, y). */
 function barAt(x: number, y: number, own: Element | null): Element | null {
@@ -46,6 +46,9 @@ interface PillRect {
   width: number;
 }
 
+const slotsOf = (rects: PillRect[]) =>
+  rects.map((r) => ({ id: r.id, center: r.center, size: r.width }));
+
 export function TabPill({
   tab,
   tabIds,
@@ -55,6 +58,7 @@ export function TabPill({
   onClose,
   onPullOut,
   onReorder,
+  onKeep,
   captureFlip,
   onMenu,
 }: {
@@ -66,6 +70,8 @@ export function TabPill({
   onClose: (id: string) => void;
   onPullOut?: (id: string, title: string) => void;
   onReorder: (id: string, index: number) => void;
+  /** A double click keeps a preview tab. */
+  onKeep?: (id: string) => void;
   captureFlip: (how: { dropped?: string; gone?: string }) => void;
   onMenu?: (x: number, y: number) => void;
 }) {
@@ -94,6 +100,7 @@ export function TabPill({
       if (!node) continue;
       node.style.transition = "";
       node.style.transform = "";
+      node.style.translate = "";
       node.style.zIndex = "";
     }
   }
@@ -167,7 +174,7 @@ export function TabPill({
       return;
     }
 
-    if (onPullOut && Math.abs(e.clientY - g.startY) > PULL_OUT_PX) {
+    if (onPullOut && Math.abs(e.clientY - g.startY) > scaledPx(PULL_OUT_PX)) {
       // Pulled out of the bar: neighbours slide home, and the drag is the
       // caller's from here.
       gesture.current = null;
@@ -211,18 +218,17 @@ export function TabPill({
     const mine = g.rects.find((r) => r.id === tab.id);
     if (!el || !mine) return;
     el.style.transition = "none";
-    el.style.transform = `translateX(${dx}px)`;
+    // `translate`, not `transform`: the lifted `scale` would scale the
+    // offset too, and the pill drift off the pointer.
+    el.style.translate = `${dx}px 0`;
     el.style.zIndex = "10";
 
-    const center = mine.center + dx;
-    const slot = mine.width + g.gap;
+    const shifts = makeRoom(slotsOf(g.rects), tab.id, dx, g.gap);
     for (const r of g.rects) {
       if (r.id === tab.id) continue;
       const node = pillNode(r.id);
       if (!node) continue;
-      let shift = 0;
-      if (r.center < mine.center && center < r.center) shift = slot;
-      else if (r.center > mine.center && center > r.center) shift = -slot;
+      const shift = shifts.get(r.id) ?? 0;
       node.style.transition = SLIDE;
       node.style.transform = shift ? `translateX(${shift}px)` : "";
     }
@@ -243,11 +249,7 @@ export function TabPill({
     }
     // The drop index is how many OTHER pills the center passed. FLIP comes
     // from the visual positions, so every pill glides to its final slot.
-    const mine = g.rects.find((r) => r.id === tab.id);
-    const center = (mine?.center ?? 0) + (e.clientX - g.startX);
-    const index = g.rects.filter(
-      (r) => r.id !== tab.id && r.center < center,
-    ).length;
+    const index = dropIndex(slotsOf(g.rects), tab.id, e.clientX - g.startX);
     if (index === tabIds.indexOf(tab.id)) {
       // Back in its own slot: no commit follows to play the slides.
       const bar = elRef.current?.parentElement;
@@ -270,7 +272,8 @@ export function TabPill({
     <div
       ref={elRef}
       data-flip-id={tab.id}
-      className={`tab-pill ${isActive ? "tab-pill-active" : ""}`}
+      className={`tab-pill ${isActive ? "tab-pill-active" : ""}${tab.preview ? " tab-pill-looking" : ""}`}
+      onDoubleClick={tab.preview && onKeep ? () => onKeep(tab.id) : undefined}
       role="tab"
       aria-selected={isActive}
       tabIndex={isActive ? 0 : -1}

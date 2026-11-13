@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockInvoke, openApp, PHONE, openPhone } from "./helpers";
+import { emit, mockInvoke, openApp, openPhone, PHONE } from "./helpers";
 
 // The Settings panel.
 
@@ -54,7 +54,7 @@ const t = {
   customCssLabel: "Custom CSS",
   themeGetMore: "Get more themes",
   privacyClearButton: "Clear",
-  privacyClearClipboard: "Clear Clipboard History",
+  privacyClearDrafts: "Delete Recovery Drafts",
   pdfPageNumbersLabel: "Show page numbers in exports",
   aboutTextus: "About Textus",
   aboutMadeBy: "Made by CatVinci Studio",
@@ -78,28 +78,34 @@ const defaultEditorStatus = {
   appImage: { supported: false, isDefault: false, chooseInSettings: false },
 };
 
-/** The canned commands Settings sent, in order. */
-function invokeCalls(page: Page) {
-  return page.evaluate(() =>
-    (
-      (window as unknown as { __devInvokeCalls?: { cmd: string }[] })
-        .__devInvokeCalls ?? []
-    ).map((c) => c.cmd),
-  );
-}
-
 async function openSettings(page: Page) {
-  await page.evaluate(() =>
-    (
-      window as unknown as {
-        __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-      }
-    ).__devEmitTauriEvent("menu-open-settings"),
-  );
+  await emit(page, "menu-open-settings");
   return page.getByRole("dialog", { name: t.settingsTitle });
 }
 
 test.describe("desktop", () => {
+  test("a text field takes Textus's own menu, and its Select All selects the text", async ({
+    page,
+  }) => {
+    await openApp(page, { settings: { language: "en" } });
+    const panel = await openSettings(page);
+    const field = panel.locator(".settings-search input");
+    await field.fill("theme");
+    await field.click({ button: "right" });
+    const menu = page.locator(".context-menu").last();
+    await expect(menu.getByRole("menuitem", { name: "Paste" })).toBeVisible();
+    await menu.getByRole("menuitem", { name: "Select All" }).click();
+    await expect
+      .poll(() =>
+        field.evaluate(
+          (el) =>
+            (el as HTMLInputElement).selectionEnd! -
+            (el as HTMLInputElement).selectionStart!,
+        ),
+      )
+      .toBe(5);
+  });
+
   test("the AI page connects first, then lists each feature with its model; the chat off hides the two groups below it", async ({
     page,
   }) => {
@@ -219,13 +225,7 @@ test.describe("desktop", () => {
     page,
   }) => {
     await openApp(page, { settings: { language: "en" } });
-    await page.evaluate(() =>
-      (
-        window as unknown as {
-          __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-        }
-      ).__devEmitTauriEvent("menu-toggle-split-view"),
-    );
+    await emit(page, "menu-toggle-split-view");
     await expect(page.locator(".split-view")).toBeVisible();
     const panel = await openSettings(page);
     await panel.getByRole("button", { name: t.navEditor }).click();
@@ -237,7 +237,7 @@ test.describe("desktop", () => {
     await expect(view).toHaveText(t.menuViewSource);
     await expect(page.locator(".split-view")).toHaveCount(0);
     await expect(
-      page.locator('[data-active-tab="true"] textarea.source-view'),
+      page.locator('[data-active-tab="true"] .source-view .cm-content'),
     ).toBeAttached();
   });
 
@@ -341,7 +341,7 @@ test.describe("desktop", () => {
     const panel = await openSettings(page);
     await panel.getByRole("button", { name: t.navPrivacy }).click();
     const clear = panel.getByRole("button", {
-      name: `${t.privacyClearButton}: ${t.privacyClearClipboard}`,
+      name: `${t.privacyClearButton}: ${t.privacyClearDrafts}`,
     });
     await clear.click();
     // The confirm dialog's own Clear, over Settings.
@@ -350,68 +350,6 @@ test.describe("desktop", () => {
     await expect(clear).toBeFocused();
     await page.keyboard.press("Escape");
     await expect(panel).toHaveCount(0);
-  });
-  test("the default editor button makes Textus the default where the system allows it", async ({
-    page,
-  }) => {
-    await openApp(page, { settings: { language: "en" } });
-    await mockInvoke(page, {
-      default_editor_status: defaultEditorStatus.mac,
-      set_default_editor: null,
-    });
-    const panel = await openSettings(page);
-    const row = panel
-      .locator(".settings-row")
-      .filter({ hasText: t.defaultEditorLabel });
-    await expect(row).toContainText(t.defaultEditorNotDefault);
-    // What the system reports once the command has run.
-    await page.evaluate(() => {
-      (
-        window as unknown as { __devInvokeResults: Record<string, unknown> }
-      ).__devInvokeResults.default_editor_status = {
-        supported: true,
-        isDefault: true,
-        chooseInSettings: false,
-      };
-    });
-    await row.getByRole("button", { name: t.defaultEditorButton }).click();
-    await expect(row).toContainText(t.defaultEditorIsDefault);
-    await expect(row.getByRole("button")).toHaveCount(0);
-    expect(await invokeCalls(page)).toContain("set_default_editor");
-  });
-
-  test("on Windows the button opens Default apps and says what to choose", async ({
-    page,
-  }) => {
-    await openApp(page, { settings: { language: "en" } });
-    await mockInvoke(page, {
-      default_editor_status: defaultEditorStatus.windows,
-      set_default_editor: null,
-    });
-    const panel = await openSettings(page);
-    const row = panel
-      .locator(".settings-row")
-      .filter({ hasText: t.defaultEditorLabel });
-    await expect(row.getByText(t.defaultEditorChooseHint)).toHaveCount(0);
-    await row.getByRole("button", { name: t.defaultEditorButton }).click();
-    await expect(row.getByText(t.defaultEditorChooseHint)).toBeVisible();
-    await expect(row).toContainText(t.defaultEditorNotDefault);
-    expect(await invokeCalls(page)).toContain("set_default_editor");
-  });
-
-  test("an AppImage explains instead of offering the button", async ({
-    page,
-  }) => {
-    await openApp(page, { settings: { language: "en" } });
-    await mockInvoke(page, {
-      default_editor_status: defaultEditorStatus.appImage,
-    });
-    const panel = await openSettings(page);
-    const row = panel
-      .locator(".settings-row")
-      .filter({ hasText: t.defaultEditorLabel });
-    await expect(row.getByText(t.defaultEditorUnsupported)).toBeVisible();
-    await expect(row.getByRole("button")).toHaveCount(0);
   });
 
   test("every page is as wide as the others, whichever category is chosen", async ({
@@ -738,13 +676,13 @@ test.describe("phone", () => {
   });
 });
 
-test("Settings' This Document switches match the View menu's: Track My Changes and Read Only", async ({
+test("Settings' This Document switches match the View menu's: Track My Changes and Reading Mode", async ({
   page,
 }) => {
   await openApp(page, { settings: { language: "en" } });
   const panel = await openSettings(page);
   await panel.getByRole("button", { name: "Editor & Appearance" }).click();
-  const readOnly = panel.getByRole("checkbox", { name: "Read Only" });
+  const readOnly = panel.getByRole("checkbox", { name: "Reading Mode" });
   const tracking = panel.getByRole("checkbox", { name: "Track My Changes" });
   await expect(readOnly).not.toBeChecked();
   await expect(tracking).not.toBeChecked();

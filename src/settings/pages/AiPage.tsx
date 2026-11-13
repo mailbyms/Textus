@@ -24,13 +24,13 @@ import { ProviderListPanel } from "../sections/providers";
 import { ImageModelSection } from "../sections/image-model";
 import {
   AgentModelSection,
-  SearchServiceSection,
   ModelListRow,
   WritingModelSection,
   AgentWorkspaceRootSection,
   AgentWorkspaceSection,
   AgentSystemPromptSection,
 } from "../sections/agent";
+import { SearchServiceSection } from "../sections/search-service";
 import {
   BuiltinSkillsSection,
   WritingConventionsRow,
@@ -191,6 +191,18 @@ export function AiPage({
                   onChange={(v) => setSettings({ enableWebSearch: v })}
                 />
                 <SearchServiceSection t={t} />
+                <ToggleRow
+                  label={t.researchSubHelpersLabel}
+                  help={t.researchSubHelpersHint}
+                  checked={settings.researchSubHelpers}
+                  onChange={(v) => setSettings({ researchSubHelpers: v })}
+                />
+                <ToggleRow
+                  label={t.researchCheckClaimsLabel}
+                  help={t.researchCheckClaimsHint}
+                  checked={settings.researchCheckClaims}
+                  onChange={(v) => setSettings({ researchCheckClaims: v })}
+                />
               </>
             )}
           </SettingsGroup>

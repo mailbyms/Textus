@@ -1,31 +1,18 @@
 import { expect, test, type Page } from "@playwright/test";
-import { mockInvoke, openApp, pasteMarkdown, selectionRead } from "./helpers";
+import {
+  mockInvoke,
+  openApp,
+  pasteMarkdown,
+  selectionRead,
+  settled,
+  sourceOf,
+  HOME,
+  END,
+  MAC,
+} from "./helpers";
 
 // What a paste puts in the markdown. The dev shim answers the image
 // commands with canned srcs.
-
-function emit(page: Page, name: string) {
-  return page.evaluate(
-    (n) =>
-      (
-        window as unknown as { __devEmitTauriEvent: (name: string) => void }
-      ).__devEmitTauriEvent(n),
-    name,
-  );
-}
-
-/** The active document's Markdown, read from source mode (and back). */
-async function sourceOf(page: Page): Promise<string> {
-  await emit(page, "menu-toggle-source-mode");
-  const textarea = page.locator(
-    '[data-active-tab="true"] textarea.source-view',
-  );
-  await expect(textarea).toBeAttached();
-  const value = await textarea.inputValue();
-  await emit(page, "menu-toggle-source-mode");
-  await expect(textarea).toHaveCount(0);
-  return value.trim();
-}
 
 /** Dispatches a paste carrying exactly these clipboard flavors. */
 async function paste(page: Page, flavors: Record<string, string>) {
@@ -119,9 +106,9 @@ test("undo after a slow screenshot save never brings its blob: src back", async 
   await page.waitForTimeout(800);
   await releaseSave(page);
   await expect.poll(() => imageSrcs(page)).toEqual(["assets/shot.png"]);
-  await page.keyboard.press("Control+z");
+  await page.keyboard.press("ControlOrMeta+z");
   await expect.poll(() => imageSrcs(page)).toEqual([]);
-  await page.keyboard.press("Control+Shift+z");
+  await page.keyboard.press("ControlOrMeta+Shift+z");
   await expect.poll(() => imageSrcs(page)).toEqual(["assets/shot.png"]);
 });
 
@@ -129,15 +116,15 @@ test("a screenshot undone before its save lands comes back stored on redo", asyn
   page,
 }) => {
   await pasteScreenshotWithSlowSave(page);
-  await page.keyboard.press("Control+z");
+  await page.keyboard.press("ControlOrMeta+z");
   await expect.poll(() => imageSrcs(page)).toEqual([]);
   await releaseSave(page);
-  await page.waitForTimeout(300);
-  await page.keyboard.press("Control+Shift+z");
+  await settled(page);
+  await page.keyboard.press("ControlOrMeta+Shift+z");
   await expect.poll(() => imageSrcs(page)).toEqual(["assets/shot.png"]);
 });
 
-test("an image file copied in the file manager is pasted as an image", async ({
+test("an image file copied in the file manager is pasted as an image, from a file list or a file:// link", async ({
   page,
 }) => {
   await mockInvoke(page, {
@@ -148,12 +135,7 @@ test("an image file copied in the file manager is pasted as an image", async ({
     "text/uri-list": "file:///home/me/%E5%9B%BE/shot.png",
     "text/plain": "/home/me/图/shot.png",
   });
-  expect(await sourceOf(page)).toBe("![](assets/copied.png)");
-});
-
-test("a file:// link to an image, as WebKitGTK renders a copied file", async ({
-  page,
-}) => {
+  // And a file:// link to one, as WebKitGTK renders a copied file.
   await mockInvoke(page, {
     read_binary_file_base64: PNG,
     save_pasted_image: { src: "assets/linked.png" },
@@ -162,23 +144,29 @@ test("a file:// link to an image, as WebKitGTK renders a copied file", async ({
     "text/html": '<a href="file:///home/me/shot.png">/home/me/shot.png</a>',
     "text/plain": "/home/me/shot.png",
   });
-  expect(await sourceOf(page)).toBe("![](assets/linked.png)");
+  const source = await sourceOf(page);
+  expect(source).toContain("![](assets/copied.png)");
+  expect(source).toContain("![](assets/linked.png)");
+  expect(source).not.toContain("file://");
 });
 
 /** A real Ctrl+V of `text` at the caret as it stands; paste() would
  *  refocus the editor and move the caret to the end. */
 async function pasteHere(page: Page, text: string) {
+  // On a Mac the test browser's clipboard write takes the caret from the
+  // editor, and the paste lands at the end; CI's Linux has it right.
+  test.skip(MAC, "the Mac test browser's clipboard moves the caret");
   await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.evaluate((value) => navigator.clipboard.writeText(value), text);
   await page.keyboard.press("ControlOrMeta+v");
-  await page.waitForTimeout(300);
+  await settled(page);
 }
 
 /** Puts the caret `n` characters into the first paragraph, selecting the
  *  next `select` characters. */
 async function caretAt(page: Page, n: number, select = 0) {
   await page.locator(`${editor} p`).first().click();
-  await page.keyboard.press("Home");
+  await page.keyboard.press(HOME);
   for (let i = 0; i < n; i++) await page.keyboard.press("ArrowRight");
   for (let i = 0; i < select; i++)
     await page.keyboard.press("Shift+ArrowRight");
@@ -192,7 +180,7 @@ test("a URL pasted inside a link's text joins it instead of splitting it", async
   // URL goes into it as text.
   await caretAt(page, 11);
   await pasteHere(page, "https://inner.example");
-  await page.keyboard.press("End");
+  await page.keyboard.press(END);
   await expect(page.locator(`${editor} a`)).toHaveCount(1);
   expect(await sourceOf(page)).toBe(
     "Before [Texhttps://inner.exampletus](https://t.example) after.",
@@ -206,7 +194,7 @@ test("a URL pasted over a link's URL only changes where it points", async ({
   // "Before [Textus](|https://old.example|)", in the link's Markdown.
   await caretAt(page, 16, 19);
   await pasteHere(page, "https://new.example");
-  await page.keyboard.press("End");
+  await page.keyboard.press(END);
   await expect(page.locator(`${editor} a`)).toHaveCount(1);
   expect(await sourceOf(page)).toBe(
     "Before [Textus](https://new.example) after.",

@@ -32,12 +32,14 @@ export {
   type Shortcuts,
   defaultShortcuts,
 } from "./shortcut-defaults";
+export { type Settings } from "./settings-types";
 export {
   type ThemeMode,
   type AiProvider,
   type NewDocumentMode,
   type ContentWidth,
   type ImageAlign,
+  type EmbedDisplay,
   type ProxyType,
   THEME_MODES,
   UI_TEXT_SCALES,
@@ -70,8 +72,7 @@ export {
   type PanelMode,
   AGENT_MODES,
   storedAgentMode,
-  type Settings,
-} from "./settings-types";
+} from "./settings-values";
 export { htmlLang, normaliseSettings } from "./settings-normalise";
 export { loadSettings, resetSettingsStoreForTests } from "./settings-store";
 

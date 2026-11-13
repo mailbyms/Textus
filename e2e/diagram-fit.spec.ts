@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { openApp, pasteMarkdown } from "./helpers";
+import { openApp, pasteMarkdown, END } from "./helpers";
 
 // A diagram far wider than the column - a timeline of many periods - keeps a
 // scale it can be read at and scrolls from its left edge; and diagrams are
@@ -37,22 +37,27 @@ test("a diagram wider than the column keeps a readable scale and scrolls", async
   expect(fit.cutAtLeft).toBe(false);
 });
 
-test("a diagram is drawn while the text after it keeps changing", async ({
-  page,
-}) => {
-  await openApp(page, { settings: { language: "en" } });
-  await pasteMarkdown(page, FLOW);
-  await page.locator('[data-active-tab="true"] .ProseMirror p').last().click();
-  await page.keyboard.press("End");
-  // A key every 200ms never leaves the editor the pause it used to wait for.
-  const typing = (async () => {
-    for (let i = 0; i < 25; i++) {
-      await page.keyboard.type("x");
-      await page.waitForTimeout(200);
-    }
-  })();
-  await expect(page.locator(`${preview} > svg`)).toBeVisible({
-    timeout: 4000,
-  });
-  await typing;
-});
+test(
+  "a diagram is drawn while the text after it keeps changing",
+  { tag: "@perf" },
+  async ({ page }) => {
+    await openApp(page, { settings: { language: "en" } });
+    await pasteMarkdown(page, FLOW);
+    await page
+      .locator('[data-active-tab="true"] .ProseMirror p')
+      .last()
+      .click();
+    await page.keyboard.press(END);
+    // A key every 200ms never leaves the editor the pause it used to wait for.
+    const typing = (async () => {
+      for (let i = 0; i < 25; i++) {
+        await page.keyboard.type("x");
+        await page.waitForTimeout(200);
+      }
+    })();
+    await expect(page.locator(`${preview} > svg`)).toBeVisible({
+      timeout: 4000,
+    });
+    await typing;
+  },
+);

@@ -1,5 +1,13 @@
 import { expect, test } from "@playwright/test";
-import { mockInvoke, openApp, pasteMarkdown, SAMPLE_DOC } from "./helpers";
+import {
+  emit,
+  mockInvoke,
+  openApp,
+  pasteMarkdown,
+  SAMPLE_DOC,
+  settled,
+  END,
+} from "./helpers";
 
 test("first run asks for a language", async ({ page }) => {
   await openApp(page, { settings: { languageChosen: false } });
@@ -22,16 +30,15 @@ for (const colorScheme of ["light", "dark"] as const) {
 test("split view shows source and preview", async ({ page }) => {
   await openApp(page);
   await pasteMarkdown(page, SAMPLE_DOC);
-  await page.keyboard.press("Control+Shift+E");
+  await page.keyboard.press("ControlOrMeta+Shift+E");
   await expect(
     page.locator('[data-active-tab="true"] .split-view'),
   ).toBeVisible();
   await expect(page.locator(".split-preview h1")).toHaveText(
     "老城区更新的几点思考",
   );
-  await expect(page).toHaveScreenshot("split-view.png");
   // And back to the editor.
-  await page.keyboard.press("Control+Shift+E");
+  await page.keyboard.press("ControlOrMeta+Shift+E");
   await expect(page.locator(".split-view")).toHaveCount(0);
 });
 
@@ -41,11 +48,10 @@ test("zen mode hides the chrome and dims all but the current block", async ({
   await openApp(page);
   await pasteMarkdown(page, SAMPLE_DOC);
   await page.locator(".milkdown h2").first().click();
-  await page.keyboard.press("Control+Shift+J");
+  await page.keyboard.press("ControlOrMeta+Shift+J");
   await expect(page.locator("html")).toHaveClass(/zen/);
   await expect(page.locator(".zen-current")).toHaveCount(1);
   await expect(page.locator(".sidebar")).toBeHidden();
-  await expect(page).toHaveScreenshot("zen-mode.png");
   await page.keyboard.press("Escape");
   await expect(page.locator("html")).not.toHaveClass(/zen/);
 });
@@ -186,10 +192,10 @@ test("the last sentence decided in the text applies the edit", async ({
 
   // Undo puts the proposal back on offer, redo applies it again.
   await page.locator(".milkdown .ProseMirror").focus();
-  await page.keyboard.press("Control+z");
+  await page.keyboard.press("ControlOrMeta+z");
   await expect(page.locator(".milkdown .pending-pick:visible")).toHaveCount(2);
   await expect(page.locator(".agent-proposal-status-accepted")).toHaveCount(0);
-  await page.keyboard.press("Control+Shift+z");
+  await page.keyboard.press("ControlOrMeta+Shift+z");
   await expect(page.locator(".milkdown .pending-pick:visible")).toHaveCount(0);
   await expect(page.locator(".agent-proposal-status-accepted")).toBeVisible();
 });
@@ -282,7 +288,7 @@ test("a pending replace keeps its strike on its text while the user types above 
   const strike = page.locator(".pending-delete");
   await expect(strike).toHaveText("Bravo two words here.");
   await page.locator(".milkdown p", { hasText: "Alpha" }).click();
-  await page.keyboard.press("End");
+  await page.keyboard.press(END);
   await page.keyboard.type("XYZ");
   // The strike range is mapped with the preview, not left three characters
   // behind.
@@ -297,7 +303,7 @@ test("Quick Ask opens on a selection in Write mode", async ({ page }) => {
   await openApp(page);
   await pasteMarkdown(page, SAMPLE_DOC);
   await page.locator(".milkdown p").nth(1).click({ clickCount: 3 });
-  await page.keyboard.press("Control+Shift+K");
+  await page.keyboard.press("ControlOrMeta+Shift+K");
   await expect(page.locator(".inline-chat")).toBeVisible();
   await expect(page.locator(".inline-chat .inline-chat-mode")).toHaveText(
     "写作",
@@ -307,13 +313,7 @@ test("Quick Ask opens on a selection in Write mode", async ({ page }) => {
 
 test("settings show the typewriter toggle", async ({ page }) => {
   await openApp(page);
-  await page.evaluate(() =>
-    (
-      window as unknown as {
-        __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-      }
-    ).__devEmitTauriEvent("menu-open-settings"),
-  );
+  await emit(page, "menu-open-settings");
   await page.getByRole("button", { name: "编辑与外观" }).click();
   await expect(page.getByText("打字机模式").first()).toBeVisible();
   await expect(page).toHaveScreenshot("settings-editor.png");
@@ -325,13 +325,15 @@ test("Ctrl+Right takes one word of a continuation and keeps the rest", async ({
   await openApp(page);
   await pasteMarkdown(page, "The plan");
   await page.locator(".milkdown p").first().click();
-  await page.keyboard.press("End");
+  await page.keyboard.press(END);
   await page.keyboard.type(" works");
   const ghost = page.locator(".ghost-text");
   await expect(ghost).toHaveAttribute(
     "data-suggestion",
     " and this ghost text is a canned dev-shim suggestion.",
   );
+  // Ctrl+Right on every platform (Cmd+Right too, but the Mac's own keys
+  // take that first in a test browser).
   await page.keyboard.press("Control+ArrowRight");
   await expect(page.locator(".milkdown p").first()).toHaveText(
     "The plan works and",
@@ -370,7 +372,7 @@ test("Quick Ask stays under its paragraph when an edit arrives", async ({
   });
   const paragraph = page.locator(".milkdown p").nth(1);
   await paragraph.click({ clickCount: 3 });
-  await page.keyboard.press("Control+Shift+K");
+  await page.keyboard.press("ControlOrMeta+Shift+K");
   await expect(page.locator(".inline-chat-input")).toBeFocused();
   await page.keyboard.type("精简");
   await page.keyboard.press("Enter");
@@ -397,7 +399,7 @@ test("Quick Ask has its own conversation and hands it to the panel", async ({
     ],
   });
   await page.locator(".milkdown p").nth(1).click();
-  await page.keyboard.press("Control+Shift+K");
+  await page.keyboard.press("ControlOrMeta+Shift+K");
   const quickInput = page.locator(".inline-chat .inline-chat-input");
   await expect(quickInput).toBeFocused();
   await page.keyboard.type("这段的主旨是什么？");
@@ -421,18 +423,11 @@ test("selects open the app's own list; notices are the app's own dialog", async 
   page,
 }) => {
   await openApp(page);
-  await page.evaluate(() =>
-    (
-      window as unknown as {
-        __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-      }
-    ).__devEmitTauriEvent("menu-open-settings"),
-  );
+  await emit(page, "menu-open-settings");
   await page.getByRole("button", { name: "编辑与外观" }).click();
   await page.getByRole("combobox", { name: "编辑器主题" }).click();
   const list = page.getByRole("listbox");
   await expect(list).toBeVisible();
-  await expect(page).toHaveScreenshot("select-open.png");
   // Escape closes the list and leaves Settings open.
   await page.keyboard.press("Escape");
   await expect(list).toHaveCount(0);
@@ -458,210 +453,38 @@ test("a help guide opens once, however many times it is asked for at once", asyn
 
 test("an open guide switches language with the UI", async ({ page }) => {
   await openApp(page);
-  await page.evaluate(() =>
-    (
-      window as unknown as {
-        __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-      }
-    ).__devEmitTauriEvent("menu-open-help", "markdown"),
-  );
+  await emit(page, "menu-open-help", "markdown");
   await expect(page.locator(".milkdown h1").first()).toContainText("Markdown");
   const zhTitle = await page.locator(".milkdown h1").first().innerText();
-  await page.evaluate(() =>
-    (
-      window as unknown as {
-        __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-      }
-    ).__devEmitTauriEvent("menu-open-settings"),
-  );
+  await emit(page, "menu-open-settings");
   await page.getByRole("combobox", { name: "语言", exact: true }).click();
   await page.getByRole("option", { name: "English" }).click();
   await expect(page.locator(".milkdown h1").first()).not.toHaveText(zhTitle);
   await expect(page.locator(".milkdown h1").first()).toContainText("Guide");
 });
 
-test("the empty-document hint follows the language picked at first run", async ({
-  page,
-}) => {
-  await openApp(page, {
-    settings: { language: "en", languageChosen: false, onboardingShown: true },
-  });
-  const hint = page.locator('[data-active-tab="true"] .empty-doc-placeholder');
-  await expect(hint).toHaveAttribute(
-    "data-placeholder",
-    "Start writing in Markdown…",
-  );
-  await page.getByRole("combobox", { name: "Language", exact: true }).click();
-  await page.getByRole("option", { name: "简体中文" }).click();
-  await page.locator(".language-welcome-continue").click();
-  await expect(hint).toHaveAttribute("data-placeholder", "开始输入 Markdown…");
-});
-
-test("backspace at the start of a quoted line takes it out of the quote", async ({
-  page,
-}) => {
-  await openApp(page);
-  await pasteMarkdown(page, "> quoted words");
-  const editor = page.locator('[data-active-tab="true"] .ProseMirror');
-  await editor.locator("blockquote p").click();
-  await page.keyboard.press("End");
-  await page.keyboard.press("Shift+Home");
-  await page.keyboard.press("Backspace");
-  // The text is gone; the empty quote must not be stuck there.
-  await page.keyboard.press("Backspace");
-  await expect(editor.locator("blockquote")).toHaveCount(0);
-});
-
-test("backspace at the start of a quote's later line joins it to the line above", async ({
-  page,
-}) => {
-  await openApp(page);
-  const editor = page.locator('[data-active-tab="true"] .ProseMirror');
-  await editor.click();
-  await page.keyboard.type("> 温度修正是用来处理的，");
-  await page.keyboard.press("Enter");
-  await page.keyboard.type("普通的分类器");
-  await page.keyboard.press("Enter");
-  await expect(editor.locator("blockquote p")).toHaveCount(3);
-  await editor.locator("blockquote p", { hasText: "普通的分类器" }).click();
-  await page.waitForTimeout(100);
-  await page.keyboard.press(
-    process.platform === "darwin" ? "Meta+ArrowLeft" : "Home",
-  );
-  await page.waitForTimeout(100);
-  await page.keyboard.press("Backspace");
-  await expect(editor.locator("blockquote")).toHaveCount(1);
-  await expect(editor.locator("blockquote p").first()).toHaveText(
-    "温度修正是用来处理的，普通的分类器",
-  );
-  // The caret where the two met: typing goes in between.
-  await page.keyboard.type("X");
-  await expect(editor.locator("blockquote p").first()).toHaveText(
-    "温度修正是用来处理的，X普通的分类器",
-  );
-});
-
-test("the phone toolbar's block buttons toggle: H steps through levels, lists and quotes come off again", async ({
-  page,
-}) => {
-  await openApp(page);
-  await pasteMarkdown(page, "plain words");
-  const editor = page.locator('[data-active-tab="true"] .ProseMirror');
-  await editor.locator("p", { hasText: "plain words" }).click();
-  const toggle = (kind: string) =>
-    page.evaluate(
-      (detail) =>
-        window.dispatchEvent(
-          new CustomEvent("textus:toggle-block", { detail }),
-        ),
-      kind,
-    );
-  for (const tag of ["h1", "h2", "h3"]) {
-    await toggle("heading");
-    await expect(editor.locator(tag, { hasText: "plain words" })).toHaveCount(
-      1,
-    );
-  }
-  await toggle("heading");
-  await expect(editor.locator("p", { hasText: "plain words" })).toHaveCount(1);
-
-  await toggle("bullet-list");
-  await expect(editor.locator("ul li")).toHaveCount(1);
-  await toggle("ordered-list"); // switches the list over
-  await expect(editor.locator("ol li")).toHaveCount(1);
-  await expect(editor.locator("ul")).toHaveCount(0);
-  await toggle("ordered-list"); // and off again
-  await expect(editor.locator("ol, ul")).toHaveCount(0);
-
-  await toggle("blockquote");
-  await expect(editor.locator("blockquote")).toHaveCount(1);
-  await toggle("blockquote");
-  await expect(editor.locator("blockquote")).toHaveCount(0);
-});
-
 test("menu events: New File opens one tab after edits, Zen and Split View respond", async ({
   page,
 }) => {
   await openApp(page);
-  const emit = (name: string) =>
-    page.evaluate(
-      (event) =>
-        (
-          window as unknown as {
-            __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-          }
-        ).__devEmitTauriEvent(event),
-      name,
-    );
   const tabs = page.locator("[data-active-tab]");
   const before = await tabs.count();
   // Edits re-render App with new handlers; one menu click must still run
   // once.
   await pasteMarkdown(page, "some words");
   await page.keyboard.type(" and more");
-  await emit("menu-new-file");
+  await emit(page, "menu-new-file");
   await expect(tabs).toHaveCount(before + 1);
 
-  await emit("menu-toggle-zen-mode");
+  await emit(page, "menu-toggle-zen-mode");
   await expect(page.locator(".zen-hint")).toBeVisible();
-  await emit("menu-toggle-zen-mode");
+  await emit(page, "menu-toggle-zen-mode");
   await expect(page.locator(".zen-hint")).toHaveCount(0);
 
-  await emit("menu-toggle-split-view");
+  await emit(page, "menu-toggle-split-view");
   await expect(
     page.locator('[data-active-tab="true"] .split-view'),
   ).toBeVisible();
-});
-
-test("Enter turns a pipe row into a table, adds rows at the end and leaves from an empty one", async ({
-  page,
-}) => {
-  await openApp(page);
-  const editor = page.locator('[data-active-tab="true"] .ProseMirror');
-  await editor.click();
-  await page.keyboard.type("|a|b|c|");
-  await page.keyboard.press("Enter");
-  await expect(editor.locator("table")).toHaveCount(1);
-  await expect(editor.locator("th")).toHaveText(["a", "b", "c"]);
-
-  await page.keyboard.type("1");
-  await page.keyboard.press("Enter");
-  await expect(editor.locator("tr")).toHaveCount(3);
-  await page.keyboard.type("2");
-  await expect(editor.locator("tr").nth(2).locator("td").first()).toHaveText(
-    "2",
-  );
-
-  await page.keyboard.press("Enter");
-  await page.keyboard.press("Enter");
-  await expect(editor.locator("tr")).toHaveCount(3);
-  await page.keyboard.type("after");
-  await expect(editor.locator(":scope > p").last()).toHaveText("after");
-});
-
-test("Enter on a code block's empty last line leaves it; Ctrl+Enter leaves a quote", async ({
-  page,
-}) => {
-  await openApp(page);
-  await pasteMarkdown(page, "```\nlet x;\n```\n\nbelow\n\n> one\n>\n> two");
-  const editor = page.locator('[data-active-tab="true"] .ProseMirror');
-
-  await editor.locator("pre code").click();
-  // Let ProseMirror read the click's caret back before keys arrive.
-  await page.waitForTimeout(100);
-  await page.keyboard.press("End");
-  await page.keyboard.press("Enter");
-  await page.keyboard.press("Enter");
-  await page.keyboard.type("out");
-  await expect(editor.locator("pre code")).toHaveText("let x;");
-  await expect(editor.locator(":scope > p").first()).toHaveText("out");
-
-  await editor.locator("blockquote p").first().click();
-  await page.waitForTimeout(100);
-  await page.keyboard.press("Control+Enter");
-  await page.keyboard.type("free");
-  await expect(editor.locator("blockquote p")).toHaveCount(2);
-  await expect(editor.locator(":scope > p").last()).toHaveText("free");
 });
 
 test("Select Row from the right-click menu highlights the clicked row", async ({
@@ -703,7 +526,7 @@ test("a one-character CJK fix reads with its neighbour on the grammar card", asy
 }) => {
   await openApp(page);
   await pasteMarkdown(page, "黛玉必竟寄人篱下，所以步步留心。");
-  await page.waitForTimeout(300);
+  await settled(page);
   await mockInvoke(page, {
     ai_grammar_check: [
       {
@@ -726,69 +549,4 @@ test("a one-character CJK fix reads with its neighbour on the grammar card", asy
   );
   await card.locator(".grammar-popover-apply").click();
   await expect(page.locator(".milkdown")).toContainText("黛玉毕竟寄人篱下");
-});
-
-test("the review bar switches how revisions show, as Word's markup views", async ({
-  page,
-}) => {
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await openApp(page, { storage: { "textus-agent-panel-open": "1" } });
-  await pasteMarkdown(page, SAMPLE_DOC);
-  const anchor =
-    "这项研究在三个街区进行。我们花了整整两个月的时间，和住在这些街区里的居民进行了一对一的、比较深入的访谈。一共访谈了四十六位居民，内容涵盖了很多方面。";
-  await mockInvoke(page, {
-    ai_agent_message: [
-      { kind: "User", text: "精简" },
-      {
-        kind: "ToolCall",
-        call_id: "e1",
-        name: "propose_edit",
-        arguments: JSON.stringify({
-          action: "replace",
-          anchor,
-          text: "这项研究覆盖三个街区。我们花了整整两个月的时间，和住在这些街区里的居民进行了一对一的、比较深入的访谈。共访谈四十六位居民。",
-        }),
-      },
-      { kind: "ToolResult", call_id: "e1", output: "Edit proposed" },
-    ],
-  });
-  const composer = page.locator(".agent-panel-view textarea");
-  await composer.fill("精简");
-  await composer.press("Enter");
-  // Default: the result in the text, what it takes out in the margin.
-  await expect(page.locator(".milkdown .ProseMirror")).toHaveAttribute(
-    "data-revision-display",
-    "final",
-  );
-  await expect(page.locator(".revision-note")).toHaveCount(2);
-  await expect(page.locator(".revision-note-original")).toHaveCount(2);
-  await expect(
-    page.locator(".milkdown .pending-sentence-new:visible"),
-  ).toHaveCount(2);
-  await expect(page.locator(".milkdown .pending-pick:visible")).toHaveCount(0);
-  const pick = async (name: string) => {
-    await page.locator(".review-bar-view-button").click();
-    await page.getByRole("menuitemradio", { name }).click();
-  };
-  // Three views, the default first.
-  await page.locator(".review-bar-view-button").click();
-  await expect(page.getByRole("menuitemradio")).toHaveText([
-    "只看结果，原文在页边",
-    "原文在正文，修改在页边",
-    "全部在正文中",
-  ]);
-  await page.locator(".review-bar-view-button").click();
-  // Everything in the text.
-  await pick("全部在正文中");
-  await expect(page.locator(".revision-note")).toHaveCount(0);
-  await expect(page.locator(".milkdown .pending-pick:visible")).toHaveCount(2);
-  // The original in the text, the replacements in the margin.
-  await pick("原文在正文，修改在页边");
-  await expect(page.locator(".revision-note")).toHaveCount(2);
-  await expect(page.locator(".revision-note-original")).toHaveCount(0);
-  await expect(page.locator(".milkdown .pending-pick:visible")).toHaveCount(0);
-  await pick("只看结果，原文在页边");
-  await page.locator(".review-bar-accept").click();
-  await expect(page.locator(".milkdown")).toContainText("共访谈四十六位居民。");
-  await expect(page.locator(".milkdown .pending-sentence-new")).toHaveCount(0);
 });

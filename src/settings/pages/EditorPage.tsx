@@ -2,13 +2,14 @@ import type { SettingsPageProps } from "./types";
 import { SettingsGroup } from "./SettingsGroup";
 import {
   type ContentWidth,
+  type EmbedDisplay,
   type ImageAlign,
   UI_TEXT_SCALES,
   type UiTextScale,
   type ColorSwatchMode,
   type DiagramEngine,
 } from "../../prefs/SettingsContext";
-import type { ViewMode } from "../../prefs/settings-types";
+import type { ViewMode } from "../../prefs/settings-values";
 import { AdvancedFold, SettingRow, ToggleRow } from "../sections/controls";
 import { useSyncExternalStore } from "react";
 import {
@@ -170,6 +171,19 @@ export function EditorPage({
           checked={settings.plainTextMenu}
           onChange={(v) => setSettings({ plainTextMenu: v })}
         />
+        <SettingRow label={t.embedDisplayLabel}>
+          <Select
+            className="settings-select"
+            aria-label={t.embedDisplayLabel}
+            value={settings.embedDisplay}
+            onChange={(e) =>
+              setSettings({ embedDisplay: e.target.value as EmbedDisplay })
+            }
+          >
+            <option value="expand">{t.embedDisplayExpand}</option>
+            <option value="card">{t.embedDisplayCard}</option>
+          </Select>
+        </SettingRow>
       </SettingsGroup>
       <SettingsGroup title={t.imageStorageGroupLabel}>
         <SettingRow label={t.imageAlignLabel}>

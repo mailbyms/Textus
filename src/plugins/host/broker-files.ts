@@ -3,7 +3,12 @@ import { fs, plugins as pluginsIpc, type StoreScope } from "../../platform/ipc";
 import { basename, slashed } from "../../utils/path";
 import { FILE_WRITTEN_EVENT } from "../../utils/events";
 import { fromBase64, toBase64 } from "../store/files";
-import { emitPluginEvent, getWindowAccess, notePathMoved } from "../app-bridge";
+import {
+  beforePluginMove,
+  emitPluginEvent,
+  getWindowAccess,
+  pluginMovedPath,
+} from "../app-bridge";
 import { globToRegExp, isDocumentPath } from "../workspace/glob";
 import {
   parseFrontmatter,
@@ -99,14 +104,31 @@ export function fileHandlers(p: PluginScope) {
         pattern ? pattern.test(f.rel) : isDocumentPath(f.path),
       );
     },
-    "files.conventions": ({ path }: Params) => {
-      const root = p.root();
-      const at = optionalStr(path) || root;
-      return fs.folderConventions(
-        /^([\\/]|[A-Za-z]:)/.test(at)
-          ? at
-          : `${root.replace(/[\\/]+$/, "")}/${at}`,
+    "files.conventions": ({ path }: Params) =>
+      fs.folderConventions(within(p.root(), optionalStr(path))),
+    // The nearest vault's own file, even above the open folder: settings
+    // other apps' plugins keep (bookmarks.json, a plugin's data.json).
+    "files.appSettings": async ({ app, file, path }: Params) => {
+      const name = str(file, "file");
+      if (!/^[\w.-]+(\/[\w.-]+)*$/.test(name) || name.includes(".."))
+        throw new Error(`${name} isn't a settings file's name.`);
+      if (str(app, "app") !== "obsidian") return null;
+      const found = await fs.folderConventions(
+        within(p.root(), optionalStr(path)),
       );
+      const vault = [...found.sources, ...(found.detected?.sources ?? [])].find(
+        (s) => s.app === "obsidian",
+      )?.root;
+      if (!vault) return null;
+      const read = await pluginsIpc
+        .fsReadVersioned(p.id, vault, `.obsidian/${name}`)
+        .catch(() => null);
+      if (!read) return null;
+      try {
+        return JSON.parse(read.text) as unknown;
+      } catch {
+        return null;
+      }
     },
     "files.stat": async ({ path }: Params) => {
       const root = p.root();
@@ -159,17 +181,18 @@ export function fileHandlers(p: PluginScope) {
       const root = write();
       const source = str(from, "from");
       const target = str(to, "to");
-      await pluginsIpc.fsRename(p.id, root, source, target);
-      window.dispatchEvent(
-        new CustomEvent(FILE_WRITTEN_EVENT, { detail: source }),
-      );
-      await notePathMoved(source, target);
-      if (updateLinks !== true) return;
       // A plugin may name the files from the folder.
       const abs = (path: string) =>
         /^([\\/]|[A-Za-z]:)/.test(path)
           ? path
           : `${root.replace(/[\\/]+$/, "")}/${path}`;
+      await beforePluginMove(abs(source));
+      await pluginsIpc.fsRename(p.id, root, source, target);
+      window.dispatchEvent(
+        new CustomEvent(FILE_WRITTEN_EVENT, { detail: source }),
+      );
+      await pluginMovedPath(abs(source), abs(target));
+      if (updateLinks !== true) return;
       const [{ documents }, { files }, conventions, linkRoot] =
         await Promise.all([
           pluginsIpc.fsDocuments(p.id, root),
@@ -317,4 +340,12 @@ export function relOf(root: string, path: string): string {
   const r = slashed(root).replace(/\/$/, "");
   const full = slashed(path);
   return full.startsWith(`${r}/`) ? full.slice(r.length + 1) : basename(full);
+}
+
+/** `path` as a full path: as given, or under `root`. */
+function within(root: string, path: string | undefined): string {
+  if (!path) return root;
+  return /^([\\/]|[A-Za-z]:)/.test(path)
+    ? path
+    : `${root.replace(/[\\/]+$/, "")}/${path}`;
 }

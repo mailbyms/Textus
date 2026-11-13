@@ -129,6 +129,8 @@ utiliser une.
   editorLabel: "Document",
   diagramZoom: "Agrandir le diagramme",
   codeBlockEditSource: "Modifier la source",
+  codeBlockDone: "Terminer la modification",
+  codeBlockDelete: "Supprimer le bloc",
   diagramViewerLabel: "Diagramme",
   pictureZoom: "Agrandir l'image",
   pictureViewerLabel: "Image",
@@ -309,6 +311,13 @@ utiliser une.
     "Après chaque réponse, jusqu'à trois choses que vous direz sans doute ensuite s'affichent en boutons au-dessus de la zone de saisie, la plus probable aussi en gris dedans ; un clic l'envoie, Tab reprend celle en gris. Cela coûte une courte requête de plus.",
   composerSuggestionTab: "Tab",
   composerFollowUps: "Messages suivants suggérés",
+  researchSubHelpersLabel:
+    "Recherche : confier des parties d’une question à des aides",
+  researchSubHelpersHint:
+    "En Recherche, l’aide qui étudie une question peut en confier une partie plus précise à une aide à lui. Plus approfondi, mais plus lent, avec un quart à la moitié d’appels au modèle en plus.",
+  researchCheckClaimsLabel: "Recherche : vérifier chaque phrase citée",
+  researchCheckClaimsHint:
+    "Avant de réviser le brouillon, chaque phrase qui cite une source est comparée aux notes sur cette source, et celle qui en dit plus est réécrite. Plus rigoureux, avec un appel au modèle de plus par section.",
   rememberAutomaticallyLabel: "Retenir automatiquement",
   rememberAutomaticallyHint: `${AI_NAME} retient ce que vous demandez et votre façon d'écrire pour les conversations suivantes. Consultez-le, modifiez-le ou annulez-le sous Projet, dans le panneau IA. Après chaque réponse, il demande brièvement au même modèle ce qu'il faut garder.`,
   toolRemember: "Mémorisation",
@@ -376,6 +385,8 @@ utiliser une.
   chatPluginCheckDom:
     "Elle dessine dans la page elle-même, ce qu'une extension ne peut pas faire : rien ne s'affichera.",
   chatPluginCheckPermission: "Elle utilise {permission} sans le demander.",
+  chatPluginCheckWhen:
+    "La condition d'un élément de menu lit {key}, que Textus ne définit pas : l'élément n'apparaît jamais.",
   chatPluginCheckUnregistered: "Elle déclare {id} mais ne l'enregistre jamais.",
   chatPluginRunError: "Elle s'est arrêtée avec : {error}",
   chatPluginFix: "Corriger avec l'IA",
@@ -399,6 +410,7 @@ utiliser une.
   toolSearchPapers: "Recherche d’articles sur « {arg} »",
   toolSearchReferences: "Recherche de « {arg} » dans les références",
   toolAddNote: "Noté : {arg}",
+  toolDelegateTask: "Confié : {arg}",
   paperOutlineTitle: "Plan",
   paperOutlineTotal: "Environ {n} {unit} au total",
   paperOutlineThesis: "Thèse",
@@ -485,6 +497,8 @@ utiliser une.
   webSources: "Sources",
   proposalSourcesAsFootnotes: "Ajouter les sources en notes de bas de page",
   menuToggleSplitView: "Source et aperçu",
+  menuViewMode: "Mode",
+  menuViewModeDefault: "Par défaut",
   splitPreview: "Aperçu",
   menuToggleZenMode: "Mode zen",
   menuSplitRight: "Partager à droite",
@@ -568,6 +582,7 @@ utiliser une.
   treeSearchScopeDocuments: "Documents seulement",
   treeNewDocument: "Nouveau document",
   treeNewFolder: "Nouveau dossier",
+  treeEmptyHint: "Double-cliquez ici pour un nouveau document.",
   treeNewDocumentPrompt: "Nom du nouveau document",
   treeNewFolderPrompt: "Nom du nouveau dossier",
   treeNewDocumentDefault: "Sans titre",
@@ -748,6 +763,10 @@ utiliser une.
   agentSkillsBuiltinTag: "Intégrée",
   agentSkillsOpen: "Ouvrir",
   agentSkillsReset: "Réinitialiser",
+  madeByTextusAi: `Créé avec ${AI_NAME}`,
+  skillDelete: "Supprimer",
+  skillDeleteAsk: "Supprimer « {name} » ? Ses fichiers iront à la Corbeille.",
+  skillDeleteAskMobile: "Supprimer « {name} » ?",
   agentSkillsResetConfirm:
     "Supprimer votre copie de «\u00a0{name}\u00a0» et revenir à la compétence intégrée\u00a0?",
   agentSkillsShadows: "Remplace une compétence intégrée",
@@ -1094,9 +1113,9 @@ utiliser une.
   menuCloseTab: "Fermer l'onglet",
   menuReopenClosedTab: "Rouvrir l'onglet fermé",
   readOnlyRefused:
-    "Ce document est en lecture seule. Désactivez Présentation › Lecture seule pour le modifier.",
-  menuToggleReadOnly: "Lecture seule",
-  readOnlyLock: "Lecture seule : cliquez pour autoriser les modifications",
+    "Ce document est en mode lecture. Pour le modifier, choisissez Présentation › Mode › Par défaut.",
+  menuToggleReadOnly: "Mode lecture",
+  readOnlyLock: "Mode lecture : cliquez pour autoriser les modifications",
   closeOtherTabs: "Fermer les autres",
   closeTabsToLeft: "Fermer les onglets à gauche",
   closeTabsToRight: "Fermer les onglets à droite",
@@ -1164,7 +1183,7 @@ utiliser une.
   reportLimit:
     "Vous avez déjà envoyé plusieurs rapports aujourd'hui. Réessayez demain, ou soumettez-le sur GitHub.",
   reportFailed: "Impossible de l'envoyer.",
-  menuHelpTutorials: "Tutoriels vidéo",
+  menuHelpTutorials: "Tutoriels en ligne",
   windowMinimize: "Réduire",
   windowMaximize: "Agrandir",
   windowRestore: "Niveau inférieur",
@@ -1252,6 +1271,11 @@ utiliser une.
   imageAlignLabel: "Images seules sur leur ligne",
   imageAlignCenter: "Centrées",
   imageAlignLeft: "À gauche",
+  embedDisplayLabel: "Notes intégrées",
+  embedDisplayExpand: "Afficher en entier",
+  embedDisplayCard: "En carte de lien",
+  embedBlockCard: "{0} · cliquer pour afficher",
+  embedBlockShow: "Afficher",
   docTextSizeLabel: "Taille du texte",
   docTextSizeAuto: "Celle du thème",
   docTextLabel: "Texte du document",
@@ -1282,6 +1306,8 @@ utiliser une.
   closeLastWindow: "Fermer la fenêtre",
   closeLastStartPage: "Afficher la page d'accueil",
   startPageRecentProjects: "Projets récents",
+  startPagePickDocument:
+    "Choisissez un document de {folder} dans la barre latérale pour commencer.",
   startPageRecentFiles: "Fichiers récents",
   autoSuggestFilenameLabel:
     "Suggérer un nom de fichier au premier enregistrement",
@@ -1369,7 +1395,7 @@ utiliser une.
     "À la fin, tapez `Ce que Hugo veut montrer, c'est`, faites une pause, puis touchez le texte gris",
   tutorialDoneTitle: "Terminé",
   tutorialDoneBody:
-    "À vous d'écrire, maintenant ; tableaux, formules, thèmes, relecture et le reste sont dans les Tutoriels vidéo.",
+    "À vous d'écrire, maintenant ; tableaux, formules, thèmes, relecture et le reste sont dans les Tutoriels en ligne.",
   tutorialDoneMemory: `${AI_NAME} retient peu à peu vos exigences et votre style ; voyez Projet, le bouton dossier du panneau IA.`,
   closePromptMessage:
     "Ce document contient des modifications non enregistrées.",
@@ -1479,10 +1505,6 @@ utiliser une.
   privacyChatHistoryToggle: "Enregistrer les conversations",
   privacyChatHistoryClearHint:
     "Supprime toutes les conversations enregistrées. Cette action est irréversible.",
-  privacyClipboardHistoryLabel: "Historique du presse-papiers",
-  privacyClipboardHistoryToggle: "Enregistrer l'historique du presse-papiers",
-  privacyClipboardHistoryClearHint:
-    "Supprime tout le contenu de l'historique du presse-papiers. Cette action est irréversible.",
   privacyDraftRecoveryLabel: "Récupération des brouillons",
   privacyDraftRecoveryToggle:
     "Récupérer le contenu non enregistré après un plantage",
@@ -1494,12 +1516,7 @@ utiliser une.
     "Supprime les instantanés présents sur le disque. Cette action est irréversible.",
   privacyClearButton: "Effacer",
   privacyClearChatHistory: "Effacer l'historique des discussions",
-  privacyClearClipboard: "Effacer l'historique du presse-papiers",
   privacyClearDrafts: "Supprimer les brouillons de récupération",
-  clipboardTab: "Presse-papiers",
-  clipboardEmpty: "Le texte copié et collé apparaîtra ici.",
-  clipboardClear: "Effacer",
-  clipboardCopy: "Copier",
   clipboardInsertHint: "Cliquez pour insérer au curseur",
   exportNeedsWysiwyg:
     "L'export HTML utilise la vue mise en forme. Quittez d'abord le mode source, puis exportez de nouveau.",
@@ -1636,6 +1653,7 @@ utiliser une.
   pluginsCatalogKept:
     "Voici la liste de la dernière fois - impossible d’en obtenir une plus récente : {reason}",
   pluginInstall: "Installer",
+  pluginNeedsTextus: "Nécessite Textus {version}",
   pluginInstalling: "Installation…",
   pluginsSortLabel: "Trier par",
   pluginsSortPopular: "Les plus installés",
@@ -1647,6 +1665,8 @@ utiliser une.
   pluginUpdatedOn: "Mis à jour le {date}",
   pluginReadmeLabel: "À propos de {name}",
   pluginUpdate: "Mettre à jour vers {version}",
+  pluginsUpdateAll: "Tout mettre à jour ({count})",
+  pluginsUpdateAllFailed: "Ces plugins n'ont pas été mis à jour : {names}.",
   pluginOfficial: "Officielle",
   pluginBy: "par {author}",
   pluginOpenDetails: "{name} : détails et réglages",
@@ -1690,6 +1710,8 @@ utiliser une.
   pluginsInstallHelp:
     "Un paquet d’extension (.textusplugin) est copié dans Textus. Un dossier d’extension est chargé là où il se trouve, pour essayer celle que vous écrivez ; il est rechargé depuis cet endroit.",
   pluginsInstallFile: "Installer depuis un fichier…",
+  pluginFormPrevMonth: "Mois précédent",
+  pluginFormNextMonth: "Mois suivant",
   pluginsLoadFolder: "Charger un dossier d’extension…",
   pluginsOpenScripts: "Ouvrir le dossier des scripts",
   pluginPackageFilter: "Extension Textus",
@@ -1697,6 +1719,7 @@ utiliser une.
   pluginOpenInstall: "Installer et ouvrir",
   pluginOpenTurnOnButton: "Activer et ouvrir",
   pluginCardLine: "Plugin suggéré : {name}",
+  pluginCardMovedLine: "{name} est désormais un plugin",
   conventionsCardLine:
     "Les réglages {app} de ce dossier placent les images dans {folder}",
   conventionsCardDetails:
@@ -1710,7 +1733,10 @@ utiliser une.
   pluginCardsRestore: "Afficher à nouveau",
   pluginScreenshot: "{name} en action",
   pluginsMine: "Créées par vous",
-  pluginsNone: "Aucune pour l’instant.",
+  pluginsInstalledNone:
+    "Aucun plugin installé pour l’instant. Choisissez-en un dans {section}, plus bas.",
+  skillsInstalledNone:
+    "Aucune compétence ajoutée pour l’instant. Choisissez-en une dans {section}, plus bas, ou créez la vôtre.",
   pluginStatusBroken: "Illisible : {reason}",
   pluginStatusDesktopOnly:
     "Fonctionne uniquement sur ordinateur, pas sur iPhone ni iPad.",
@@ -1780,6 +1806,8 @@ utiliser une.
   pluginPermNetworkAny: "Se connecter à n’importe quel site web",
   menuPlugins: "Extensions",
   menuManagePlugins: "Gérer les extensions…",
+  menuPluginSettings: "Réglages…",
+  menuPluginSettingsOf: "Réglages de {name}…",
   menuNoPluginCommands: "Aucune commande d’extension",
   webPageAddress: "Adresse web",
   webPageReload: "Recharger",

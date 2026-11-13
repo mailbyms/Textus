@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState } from "react";
 import { MODES } from "../modes";
 import type { Strings } from "../../i18n/strings";
-import { AGENT_MODES, type AgentMode } from "../../prefs/settings-types";
+import { AGENT_MODES, type AgentMode } from "../../prefs/settings-values";
 import { CheckIcon, ChevronIcon } from "../../ui/icons";
 import { useCloseOnOutsideClick } from "../../utils/hooks/useCloseOnOutsideClick";
 
@@ -84,10 +84,8 @@ export function ModeChoice({
                   );
                 }}
               >
-                <CheckIcon
-                  className={`context-menu-check${on ? "" : " context-menu-check-off"}`}
-                />
                 {t[MODES[mode].label]}
+                {on && <CheckIcon className="context-menu-check" />}
               </button>
             );
           })}

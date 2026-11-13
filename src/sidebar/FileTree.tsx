@@ -1,49 +1,35 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type MouseEvent as ReactMouseEvent,
-} from "react";
-import { createPortal } from "react-dom";
+import { useMemo, useRef, type MouseEvent as ReactMouseEvent } from "react";
 import {
   ChevronIcon,
   CloseIcon,
-  OpenFolderIcon,
+  NewDocumentIcon,
+  NewFolderIcon,
   RefreshIcon,
   SortIcon,
 } from "../ui/icons";
-import { fs, windowIpc } from "../platform/ipc";
+import { windowIpc } from "../platform/ipc";
 
 const openInNewWindow = (path: string) =>
   void windowIpc.openPathInNewWindow(path);
 import { useSettings } from "../prefs/SettingsContext";
-import { basename, isInside, parentDir } from "../utils/path";
-import { FILE_WRITTEN_EVENT } from "../utils/events";
+import { basename, parentDir } from "../utils/path";
 import { canOpenFolder, isIOSApp } from "../platform/capabilities";
-import { ContextMenu, type ContextMenuItem } from "../ui/ContextMenu";
-import { contributedContextItems } from "../ui/context-menu-items";
+import { ContextMenu } from "../ui/ContextMenu";
 import { Presence } from "../ui/usePresence";
 import { useTreeKeys } from "../ui/useTreeKeys";
 import { FileSearch } from "./FileSearch";
 import { type SearchScope } from "./file-search";
 import { Tooltip } from "../ui/Tooltip";
-import { getUiState, setUiState } from "../storage/ui-state";
-import { showConfirm, showMessage, showPrompt } from "../ui/app-dialog";
-import type { Strings } from "../i18n/strings";
-import {
-  failureText,
-  TreeContext,
-  type TreeShared,
-  type TreeSort,
-} from "./tree-shared";
+import { setUiState } from "../storage/ui-state";
+import { TreeContext, type TreeShared, type TreeSort } from "./tree-shared";
 import { useRowDrag } from "./useRowDrag";
-import { updateLinksAfterMove } from "./move-links";
 import { DirNode } from "./TreeNodes";
 import { TreeFollowing } from "./TreeFollowing";
 import "./FileTree.css";
-import { copyPathItem } from "../clipboard/copy-path";
+import type { FileOpenHow } from "./tree-shared";
+import { useTreeView } from "./useTreeData";
+import { useRowMenu } from "./useRowMenu";
+import { useNewEntry } from "./useNewEntry";
 export type { TreeSort } from "./tree-shared";
 
 interface FileTreeProps {
@@ -55,12 +41,12 @@ interface FileTreeProps {
    *  inside it, and the search covers all of it. */
   folder: string | null;
   activePath: string | null;
-  /** `beside`: Open to the Side, in a split beside the one in front. */
-  onFileSelect: (path: string, beside?: boolean) => void;
-  /** File > Open Folder… and Close Folder; Open is left out on iOS. */
-  onOpenFolder?: () => void;
+  /** How it opens: a tab of its own unless `how` says to look (a click,
+   *  the preview tab) or Open to the Side. */
+  onFileSelect: (path: string, how?: FileOpenHow) => void;
   /** Opens the folder the tree shows as the window's folder; desktop only. */
   onOpenAsFolder?: (path: string) => void;
+  /** File > Close Folder. */
   onCloseFolder: () => void;
   /** A file or folder was dragged into another folder: open tabs follow
    *  it to its new path. */
@@ -70,21 +56,12 @@ interface FileTreeProps {
   onSearchFocusHandled: () => void;
 }
 
-function savedSort(): TreeSort {
-  return getUiState("fileTreeSort") === "modified" ? "modified" : "name";
-}
-
-function savedScope(): SearchScope {
-  return getUiState("fileSearchScope") === "documents" ? "documents" : "all";
-}
-
 export function FileTree({
   root,
   onRootChange,
   folder,
   activePath,
   onFileSelect,
-  onOpenFolder,
   onOpenAsFolder,
   onCloseFolder,
   onEntryMoved,
@@ -96,7 +73,6 @@ export function FileTree({
   const { generation, setGeneration, query, setQuery } = view;
   const { sort, setSort, scope, setScope, versions, reload } = view;
   const { showHidden, setShowHidden } = view;
-  const [menu, setMenu] = useState<TreeMenu>(null);
   // Not on iOS: above Documents is the app's private container, and above
   // a folder picked in Files is outside what the user granted. Not above an
   // opened folder either: that is the edge of what the user opened.
@@ -105,15 +81,16 @@ export function FileTree({
   const treeRef = useRef<HTMLDivElement>(null);
   const treeKeys = useTreeKeys(treeRef);
   const desktop = !isIOSApp && canOpenFolder;
+  const { draft, setDraft, finishDraft } = useNewEntry(t, reload, onFileSelect);
 
-  const onRowMenu = useRowMenu(
+  const { menu, setMenu, onRowMenu } = useRowMenu(
     root,
     folder ?? root,
     t,
     reload,
     onFileSelect,
     onEntryMoved,
-    setMenu,
+    setDraft,
   );
   const { drag, onRowPointerDown, takeDragClick } = useRowDrag(
     treeRef,
@@ -135,6 +112,9 @@ export function FileTree({
       onRowPointerDown: desktop ? onRowPointerDown : null,
       openInNewWindow: desktop ? openInNewWindow : null,
       takeDragClick,
+      draft,
+      finishDraft,
+      draftHint: desktop ? t.treeEmptyHint : null,
     }),
     [
       sort,
@@ -148,6 +128,9 @@ export function FileTree({
       onRowMenu,
       onRowPointerDown,
       takeDragClick,
+      draft,
+      finishDraft,
+      t,
     ],
   );
 
@@ -235,6 +218,30 @@ export function FileTree({
             <span className="tree-root-label" title={root}>
               {basename(root.replace(/[\\/]+$/, "")) || root}
             </span>
+            {desktop && (
+              <>
+                <Tooltip text={t.treeNewDocument}>
+                  <button
+                    type="button"
+                    className="tree-tool"
+                    aria-label={t.treeNewDocument}
+                    onClick={() => setDraft({ dir: root, kind: "document" })}
+                  >
+                    <NewDocumentIcon />
+                  </button>
+                </Tooltip>
+                <Tooltip text={t.treeNewFolder}>
+                  <button
+                    type="button"
+                    className="tree-tool"
+                    aria-label={t.treeNewFolder}
+                    onClick={() => setDraft({ dir: root, kind: "folder" })}
+                  >
+                    <NewFolderIcon />
+                  </button>
+                </Tooltip>
+              </>
+            )}
             <Tooltip text={t.treeSort}>
               <button
                 type="button"
@@ -246,18 +253,6 @@ export function FileTree({
                 <SortIcon />
               </button>
             </Tooltip>
-            {onOpenFolder && (
-              <Tooltip text={t.menuOpenFolder}>
-                <button
-                  type="button"
-                  className="tree-tool"
-                  onClick={onOpenFolder}
-                  aria-label={t.menuOpenFolder}
-                >
-                  <OpenFolderIcon />
-                </button>
-              </Tooltip>
-            )}
             {folder && (
               <Tooltip text={t.menuCloseFolder}>
                 <button
@@ -299,6 +294,15 @@ export function FileTree({
             onContextMenu={
               desktop ? (e) => onRowMenu(e, root, true) : undefined
             }
+            // Double-click on the blank below the rows: a new document there.
+            onDoubleClick={
+              desktop
+                ? (e) => {
+                    if (!(e.target as HTMLElement).closest(".tree-row"))
+                      setDraft({ dir: root, kind: "document" });
+                  }
+                : undefined
+            }
           >
             <DirNode
               key={`${root}\n${generation}`}
@@ -320,226 +324,7 @@ export function FileTree({
             />
           )}
         </Presence>
-        {drag &&
-          createPortal(
-            <div
-              className="tree-drag-ghost floating-surface"
-              style={{ left: drag.x + 12, top: drag.y + 8 }}
-            >
-              {drag.name}
-            </div>,
-            document.body,
-          )}
       </div>
     </TreeContext.Provider>
-  );
-}
-
-/** What the tree shows: its sort, the search's query and scope, and
- *  `generation`, bumped by Refresh to remount every node and re-index.
- *  `reload` re-reads only the folders named and opens them; `refresh`
- *  re-reads them as they are. */
-function useTreeView(base: string) {
-  const [generation, setGeneration] = useState(0);
-  const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<TreeSort>(savedSort);
-  const [scope, setScope] = useState<SearchScope>(savedScope);
-  const [showHidden, setShowHidden] = useState(
-    () => getUiState("fileTreeHidden") === "1",
-  );
-  const [versions, setVersions] = useState<Record<string, number>>({});
-  const reload = useCallback((...dirs: string[]) => {
-    setVersions((prev) => bump(prev, dirs));
-  }, []);
-  const [stale, setStale] = useState<Record<string, number>>({});
-  const refresh = useCallback((dirs: string[]) => {
-    setStale((prev) => bump(prev, dirs));
-  }, []);
-  usePluginWrites(base, refresh);
-  const refreshed = useRefreshOnFocus();
-  return {
-    generation,
-    setGeneration,
-    query,
-    setQuery,
-    sort,
-    setSort,
-    scope,
-    setScope,
-    showHidden,
-    setShowHidden,
-    versions,
-    reload,
-    stale,
-    refresh,
-    refreshed,
-  };
-}
-
-/** A count bumped each time the window comes back to the front, when Git,
- *  Obsidian or a file manager may have changed the folder. */
-function useRefreshOnFocus(): number {
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    const onFocus = () => setCount((n) => n + 1);
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, []);
-  return count;
-}
-
-function bump(counts: Record<string, number>, dirs: string[]) {
-  const next = { ...counts };
-  for (const dir of dirs) next[dir] = (next[dir] ?? 0) + 1;
-  return next;
-}
-
-/** What a plugin wrote, moved or trashed shows in the folders it touched,
- *  read again together a moment later. `base` is the opened folder, which a
- *  plugin's relative paths are in. */
-function usePluginWrites(base: string, refresh: (dirs: string[]) => void) {
-  useEffect(() => {
-    const dirs = new Set<string>();
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const onWritten = (e: Event) => {
-      const path = (e as CustomEvent<unknown>).detail;
-      if (typeof path !== "string") return;
-      const sep = base.includes("\\") ? "\\" : "/";
-      const full = /^([\\/]|[A-Za-z]:)/.test(path)
-        ? path
-        : `${base.replace(/[\\/]+$/, "")}${sep}${path}`;
-      for (
-        let dir = parentDir(full);
-        dir && (dir === base || isInside(dir, base));
-        dir = parentDir(dir)
-      )
-        dirs.add(dir);
-      clearTimeout(timer);
-      timer = setTimeout(() => {
-        refresh([...dirs]);
-        dirs.clear();
-      }, 150);
-    };
-    window.addEventListener(FILE_WRITTEN_EVENT, onWritten);
-    return () => {
-      window.removeEventListener(FILE_WRITTEN_EVENT, onWritten);
-      clearTimeout(timer);
-    };
-  }, [base, refresh]);
-}
-
-type TreeMenu = {
-  x: number;
-  y: number;
-  items: (ContextMenuItem | "separator")[];
-} | null;
-
-/** A row's context menu: open, new document or folder, rename, move to Trash. */
-function useRowMenu(
-  root: string,
-  linkBase: string,
-  t: Strings,
-  reload: (...dirs: string[]) => void,
-  onFileSelect: (path: string, beside?: boolean) => void,
-  onEntryMoved: (from: string, to: string) => void,
-  setMenu: (menu: TreeMenu) => void,
-) {
-  const rename = useCallback(
-    async (path: string) => {
-      const name = await showPrompt(t.treeRenamePrompt, basename(path), {
-        okLabel: t.treeRename,
-        cancelLabel: t.cancel,
-      });
-      if (!name?.trim() || name.trim() === basename(path)) return;
-      try {
-        const to = await fs.renameEntry(path, name);
-        reload(parentDir(path) ?? root);
-        // Open documents follow, as for a move.
-        onEntryMoved(path, to);
-        void updateLinksAfterMove(path, to, linkBase, t);
-      } catch (err) {
-        await showMessage(failureText(t, err, name.trim()));
-      }
-    },
-    [root, linkBase, t, reload, onEntryMoved],
-  );
-  const trash = useCallback(
-    async (path: string, isDir: boolean) => {
-      const name = basename(path);
-      const ok = await showConfirm(
-        (isDir ? t.treeTrashFolderConfirm : t.treeTrashConfirm).replace(
-          "{name}",
-          name,
-        ),
-        { okLabel: t.treeTrash, cancelLabel: t.cancel, danger: true },
-      );
-      if (!ok) return;
-      try {
-        await fs.trashEntry(path, root);
-        reload(parentDir(path) ?? root);
-      } catch (err) {
-        await showMessage(failureText(t, err, name));
-      }
-    },
-    [root, t, reload],
-  );
-
-  const create = useCallback(
-    async (dir: string, kind: "document" | "folder") => {
-      const doc = kind === "document";
-      const name = await showPrompt(
-        doc ? t.treeNewDocumentPrompt : t.treeNewFolderPrompt,
-        doc ? t.treeNewDocumentDefault : t.treeNewFolderDefault,
-        { okLabel: t.dialogOk, cancelLabel: t.cancel },
-      );
-      if (!name?.trim()) return;
-      try {
-        const made = doc
-          ? await fs.createDocument(dir, name)
-          : await fs.createFolder(dir, name);
-        reload(dir);
-        if (doc) onFileSelect(made);
-      } catch (err) {
-        await showMessage(failureText(t, err, name.trim()));
-      }
-    },
-    [t, reload, onFileSelect],
-  );
-
-  return useCallback(
-    (e: ReactMouseEvent, path: string, isDir: boolean) => {
-      e.preventDefault();
-      e.stopPropagation();
-      // New things go into the folder clicked, or the one the file is in.
-      const dir = isDir ? path : (parentDir(path) ?? root);
-      const items: (ContextMenuItem | "separator")[] = [];
-      if (path !== root && !isDir)
-        items.push(
-          { label: t.treeOpen, onSelect: () => onFileSelect(path) },
-          { label: t.openBeside, onSelect: () => onFileSelect(path, true) },
-          "separator",
-        );
-      items.push(
-        {
-          label: t.treeNewDocument,
-          onSelect: () => void create(dir, "document"),
-        },
-        { label: t.treeNewFolder, onSelect: () => void create(dir, "folder") },
-      );
-      items.push("separator", copyPathItem(t, path));
-      if (path !== root)
-        items.push(
-          { label: t.treeRenameItem, onSelect: () => void rename(path) },
-          {
-            label: t.treeTrashItem,
-            onSelect: () => void trash(path, isDir),
-            danger: true,
-          },
-        );
-      const added = contributedContextItems("file/context", { path });
-      if (added.length) items.push("separator", ...added);
-      setMenu({ x: e.clientX, y: e.clientY, items });
-    },
-    [root, t, create, rename, trash, onFileSelect, setMenu],
   );
 }

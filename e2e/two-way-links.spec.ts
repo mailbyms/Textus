@@ -1,11 +1,6 @@
 import { expect, test, type Page } from "@playwright/test";
-import { selectionRead } from "./helpers";
-import {
-  hasPlugin,
-  openPath,
-  openSidebarList,
-  openWithPlugins,
-} from "./plugin-helpers";
+import { selectionRead, END } from "./helpers";
+import { hasPlugin, openPath, openWithPlugins } from "./plugin-helpers";
 
 /**
  * Two-way Links on the core's link APIs: [[ completion in the / panel
@@ -56,6 +51,8 @@ test("[[ lists notes, headings and blocks, and a block picked gets an id", async
   await open(
     page,
     {
+      // A folder that chose [[wiki links]] (Two-way Links › New Links).
+      "/notes/.textus/settings.json": '{"conventions":{"linkStyle":"wiki"}}',
       "/notes/Doc.md": "Start\n",
       "/notes/Ideas.md":
         "# Ideas\n\n## Plan\n\nFirst point.\n\nSecond point.\n",
@@ -65,7 +62,7 @@ test("[[ lists notes, headings and blocks, and a block picked gets an id", async
   await expect(page.locator(editor)).toContainText("Start");
   await page.locator(`${editor} p`).first().click();
   await selectionRead(page);
-  await page.keyboard.press("End");
+  await page.keyboard.press(END);
 
   await page.keyboard.type(" [[Ide");
   await expect(
@@ -111,7 +108,8 @@ test("an embed shows its note read-only and follows its changes", async ({
     "/notes/Doc.md",
   );
   const embed = page.locator(`${editor} .note-embed`);
-  await expect(embed.locator(".note-embed-title")).toHaveText("Ideas › Plan");
+  // Its content alone; its name is for when it is folded.
+  await expect(embed.locator(".block-folded-name")).toHaveText("Ideas › Plan");
   await expect(embed.locator(".note-embed-body")).toContainText("First point.");
   await expect(embed).toHaveAttribute("contenteditable", "false");
   await expect(page.locator(`${editor} .obsidian-embed-source`)).toBeHidden();
@@ -139,7 +137,7 @@ test("an embed shows its note read-only and follows its changes", async ({
   await expect(embed).toHaveCount(0);
 });
 
-test("an embed folds under its title and stays folded when drawn again", async ({
+test("an embed folds to a line with its name and stays folded when drawn again", async ({
   page,
 }) => {
   await open(
@@ -157,7 +155,8 @@ test("an embed folds under its title and stays folded when drawn again", async (
   await expect(body).toBeHidden();
   // Folding opens nothing and leaves the source hidden.
   await expect(page.locator(`${editor} .obsidian-embed-source`)).toBeHidden();
-  await expect(embed.locator(".note-embed-title")).toHaveText("Ideas › Plan");
+  await expect(embed.locator(".block-folded-line")).toBeVisible();
+  await expect(embed.locator(".block-folded-line")).toHaveText("Ideas › Plan");
 
   // Its note changes and it is drawn again: still folded.
   await page.evaluate(() => {
@@ -189,21 +188,25 @@ test("a section that embeds itself is drawn once", async ({ page }) => {
   );
 });
 
-test("backlinks list a link written with [[ completion", async ({ page }) => {
+test("[[ writes a standard link where the folder says nothing", async ({
+  page,
+}) => {
   await open(
     page,
-    {
-      "/notes/Doc.md": "See [[Ideas]] for more.\n",
-      "/notes/Ideas.md": "# Ideas\n",
-    },
-    "/notes/Ideas.md",
+    { "/notes/Doc.md": "Start\n", "/notes/My Ideas.md": "# Ideas\n" },
+    "/notes/Doc.md",
   );
-  await expect(page.locator(editor)).toContainText("Ideas");
-  const list = await openSidebarList(page, "Two-way Links");
-  await expect(list.locator(".plugin-list-group").first()).toHaveText(
-    "Linked mentions · 1",
-  );
-  await expect(list.locator(".plugin-list-row").first()).toContainText(
-    "See [[Ideas]] for more.",
-  );
+  await expect(page.locator(editor)).toContainText("Start");
+  await page.locator(`${editor} p`).first().click();
+  await selectionRead(page);
+  await page.keyboard.press(END);
+  await page.keyboard.type(" [[My Ide");
+  await expect(
+    page.locator(panel).locator(".completion-item").first(),
+  ).toContainText("My Ideas");
+  await page.keyboard.press("Enter");
+  await page.keyboard.press("ControlOrMeta+s");
+  await expect
+    .poll(() => disk(page, "/notes/Doc.md"))
+    .toContain("[My Ideas](My%20Ideas.md)");
 });

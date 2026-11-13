@@ -1,5 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
-import { openApp, pasteMarkdown } from "./helpers";
+import { emit, openApp, pasteMarkdown, END } from "./helpers";
 
 /**
  * HTML in a document (<details>, tables, a few inline styles, inline SVG)
@@ -30,18 +30,6 @@ const DOC = [
   "",
   "The end.",
 ].join("\n");
-
-function emit(page: Page, name: string) {
-  return page.evaluate(
-    (n) =>
-      (
-        window as unknown as {
-          __devEmitTauriEvent: (name: string, payload?: unknown) => void;
-        }
-      ).__devEmitTauriEvent(n),
-    name,
-  );
-}
 
 async function openDoc(page: Page) {
   await openApp(page, { settings: { language: "en" } });
@@ -216,7 +204,7 @@ test("a table's words are edited where they're drawn, its tags kept", async ({
   await cell.click();
   // Still the table, not its source.
   await expect(editor).not.toContainText("<td>", { useInnerText: true });
-  await page.keyboard.press("End");
+  await page.keyboard.press(END);
   await page.keyboard.type(" & notes");
   await page.keyboard.press("Enter");
   await expect(

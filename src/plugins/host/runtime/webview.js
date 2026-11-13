@@ -48,6 +48,103 @@
   window.addEventListener("pointerdown", closeMenu, true);
   window.addEventListener("keydown", closeMenu, true);
 
+  // A pinch or a mod+wheel over the page zooms the document around it, as
+  // it does anywhere else in the window: passed on, not kept here.
+  window.addEventListener(
+    "wheel",
+    function (event) {
+      if (!event.ctrlKey && !event.metaKey) return;
+      event.preventDefault();
+      send("zoomWheel", {
+        deltaY: event.deltaY,
+        ctrlKey: event.ctrlKey,
+        metaKey: event.metaKey,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    },
+    { passive: false },
+  );
+  // No engine menu on a page, as in the window. A text field gets Textus's
+  // own (undo, cut, copy, paste, select all), drawn by the window and done
+  // here; a right-click the page itself didn't answer goes to the window,
+  // whose menu has what it can do to the page there (a block's: delete it).
+  window.addEventListener("contextmenu", function (event) {
+    var target = event.target;
+    var field =
+      target && target.closest
+        ? target.closest("input, textarea, [contenteditable='true']")
+        : null;
+    if (field && !event.defaultPrevented) {
+      event.preventDefault();
+      textMenu(field, event.clientX, event.clientY);
+      return;
+    }
+    if (!event.defaultPrevented && !field)
+      send("contextMenu", { x: event.clientX, y: event.clientY });
+    event.preventDefault();
+  });
+  function selectedIn(field) {
+    if ("selectionStart" in field && field.selectionStart !== null)
+      return field.selectionStart !== field.selectionEnd;
+    var selection = window.getSelection();
+    return !!selection && !selection.isCollapsed;
+  }
+  function selectedText(field) {
+    if ("selectionStart" in field && field.selectionStart !== null)
+      return field.value.slice(field.selectionStart, field.selectionEnd);
+    return String(window.getSelection() || "");
+  }
+  // While the menu is open the field is marked (data-menu-open): its blur
+  // then isn't the end of an edit.
+  function textMenu(field, x, y) {
+    menuOpen = true;
+    field.setAttribute("data-menu-open", "");
+    call("textMenu", { x: x, y: y, selected: selectedIn(field) }).then(
+      function (action) {
+        menuOpen = false;
+        field.focus();
+        field.removeAttribute("data-menu-open");
+        return editText(field, action);
+      },
+    );
+  }
+  /** Undo, redo, cut, copy, paste or select all in `field`, the clipboard
+   *  through the window (a page can't read it). */
+  function editText(field, action) {
+    if (!action) return Promise.resolve();
+    field.focus();
+    return Promise.resolve().then(function () {
+      if (action === "copy" || action === "cut") {
+        var text = selectedText(field);
+        return call("clipboardWrite", { text: text }).then(function () {
+          if (action === "cut") document.execCommand("delete");
+        });
+      }
+      if (action === "paste")
+        return call("clipboardRead", {}).then(function (text) {
+          if (text) document.execCommand("insertText", false, String(text));
+        });
+      if (action === "selectAll") {
+        if (field.select) field.select();
+        else document.execCommand("selectAll");
+        return;
+      }
+      document.execCommand(action);
+    });
+  }
+  ["gesturestart", "gesturechange", "gestureend"].forEach(function (type) {
+    window.addEventListener(type, function (event) {
+      event.preventDefault();
+      send("zoomGesture", {
+        type: type,
+        scale: event.scale,
+        x: event.clientX,
+        y: event.clientY,
+      });
+    });
+  });
+
   // Where a menu opens: under an element, or at a point of the page.
   function anchor(at) {
     if (at && typeof at.getBoundingClientRect === "function") {
@@ -141,6 +238,15 @@
     // right-click or a dropdown. Items: { label, value, checked, danger,
     // disabled }, "separator", or { label, items } for a submenu. Gives
     // the chosen item's value (its label without one), or null.
+    // A text field's actions, for a page that puts them in a menu of its
+    // own: textItems(field) gives them labelled in Textus's language (as
+    // menu items, value the action), editText(field, action) does one.
+    textItems: function (field) {
+      return call("textItems", { selected: selectedIn(field) });
+    },
+    editText: function (field, action) {
+      return editText(field, action);
+    },
     menu: function (items, at) {
       var point = anchor(at);
       menuOpen = true;
@@ -184,6 +290,12 @@
         },
         theme: function (params) {
           setTheme(params.css, params.dark);
+        },
+        // A page drawn in the document takes the document's zoom itself:
+        // its frame is kept out of the window's, so it draws sharp.
+        zoom: function (params) {
+          document.documentElement.style.zoom =
+            params.zoom === 1 ? "" : String(params.zoom);
         },
         export: function (params) {
           return loaded.then(function () {
@@ -238,8 +350,19 @@
     requestAnimationFrame(function () {
       pending = false;
       tellHeight();
+      contain();
     });
   }
+  // A page taller than its frame scrolls in it, and its scrolling stops at
+  // its ends instead of carrying on into the document around it. One that
+  // fits passes the wheel on, as the rest of the document does.
+  function contain() {
+    var root = document.documentElement;
+    // By where the content ends: the page is never shorter than its frame.
+    var scrolls = contentHeight() > window.innerHeight + 1;
+    root.style.overscrollBehaviorY = scrolls ? "contain" : "";
+  }
+  window.addEventListener("resize", soon);
   if (typeof ResizeObserver === "function")
     window.addEventListener("DOMContentLoaded", function () {
       new ResizeObserver(soon).observe(document.documentElement);

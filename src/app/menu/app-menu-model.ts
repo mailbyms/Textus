@@ -1,8 +1,13 @@
-import { PLUGINS_SHOWN } from "../../plugins/store/availability";
 import type { Strings } from "../../i18n/strings";
-import type { HeadingAction, Shortcuts } from "../../prefs/SettingsContext";
-import { basename } from "../../utils/path";
+import type { Shortcuts } from "../../prefs/SettingsContext";
+import { type PluginMenuEntry } from "./plugin-menu";
 
+import {
+  exportEntries,
+  formatEntries,
+  pluginsMenu,
+  recentEntries,
+} from "./app-menu-sections";
 /**
  * The app-drawn menu, as data, for windows with no native menu bar. Entries
  * that reach the backend use the same ids as the native menu.
@@ -33,6 +38,7 @@ export type NativeMenuId =
   | "copy-as-plain-text"
   | "paste-as-plain-text"
   | "toggle-source-mode"
+  | "view-mode-default"
   | "toggle-typewriter-mode"
   | "track-changes"
   | "toggle-sidebar"
@@ -117,22 +123,29 @@ export type MenuNode = MenuEntry | "separator";
  * Screen is left out: AppKit marks its own.
  */
 export function nativeMenuChecks(checks: MenuChecks): Record<string, boolean> {
+  const mode = viewModeChecks(checks);
   return {
     "toggle-sidebar": !!checks.sidebar,
     "toggle-agent-panel": !!checks.agentPanel,
-    "toggle-source-mode": !!checks.sourceMode,
-    "toggle-split-view": !!checks.splitView,
+    "view-mode-default": mode.default,
+    "toggle-source-mode": mode.source,
+    "toggle-split-view": mode.split,
     "toggle-typewriter-mode": !!checks.typewriter,
     "toggle-zen-mode": !!checks.zen,
-    "toggle-read-only": !!checks.readOnly,
+    "toggle-read-only": mode.readOnly,
     "track-changes": !!checks.trackChanges,
   };
 }
 
-/** A command a plugin put in the Plugins menu. */
-export interface PluginMenuEntry {
-  command: string;
-  label: string;
+/** View › Mode's one check: read-only first, it is the document's. */
+function viewModeChecks(checks: MenuChecks) {
+  const readOnly = !!checks.readOnly;
+  return {
+    default: !readOnly && !checks.sourceMode && !checks.splitView,
+    source: !readOnly && !!checks.sourceMode,
+    split: !readOnly && !!checks.splitView,
+    readOnly,
+  };
 }
 
 /** What File > Open Recent lists, most recent first. */
@@ -144,138 +157,6 @@ export interface RecentLists {
 
 export const NO_RECENTS: RecentLists = { files: [], folders: [] };
 
-/** Recent files by name, full path on hover. A folder's name ends in a
- *  separator to tell it from the files. */
-function recentEntries(t: Strings, recents: RecentLists): MenuNode[] {
-  const { files, folders } = recents;
-  if (files.length === 0 && folders.length === 0) {
-    return [{ label: t.menuRecentNone, disabled: true }];
-  }
-  const folderNodes = folders.map((path): MenuNode => {
-    const trimmed = path.replace(/[\\/]+$/, "");
-    const sep = trimmed.includes("\\") && !trimmed.includes("/") ? "\\" : "/";
-    return {
-      label: `${basename(trimmed) || trimmed}${sep}`,
-      title: path,
-      action: { native: `recent-folder:${path}` },
-    };
-  });
-  const fileNodes = files.map((path): MenuNode => ({
-    label: basename(path) || path,
-    title: path,
-    action: { native: `recent:${path}` },
-  }));
-  return [
-    ...folderNodes,
-    ...(folderNodes.length && fileNodes.length ? ["separator" as const] : []),
-    ...fileNodes,
-    "separator",
-    { label: t.menuRecentClear, action: { native: "recent-clear" } },
-  ];
-}
-
-/** Keep in step with the native menu's pandoc export list. */
-function exportEntries(t: Strings): MenuNode[] {
-  const pandoc: [string, string][] = [
-    ["docx", t.menuExportDocx],
-    ["odt", t.menuExportOdt],
-    ["rtf", t.menuExportRtf],
-    ["epub", t.menuExportEpub],
-    ["latex", t.menuExportLatex],
-    ["mediawiki", t.menuExportMediawiki],
-    ["rst", t.menuExportRst],
-    ["textile", t.menuExportTextile],
-    ["opml", t.menuExportOpml],
-  ];
-  return [
-    {
-      label: t.menuExportPdf,
-      accel: "mod+p",
-      action: { native: "export-pdf" },
-    },
-    { label: t.menuExportHtml, action: { native: "export-html" } },
-    "separator",
-    ...pandoc.map(([format, label]): MenuNode => ({
-      label,
-      action: { native: `export-pandoc:${format}` },
-    })),
-  ];
-}
-
-/** Format › Highlight's key, fixed as Bold's and Italic's are: the editor
- *  answers it itself (format-shortcut-plugin.ts), and menu/build.rs gives
- *  the macOS item the same. */
-const HIGHLIGHT_COMBO = "mod+shift+h";
-
-function formatEntries(t: Strings, shortcuts: Shortcuts): MenuNode[] {
-  const headings = [1, 2, 3, 4, 5, 6].map((level): MenuNode => ({
-    label: t.menuHeadingTemplate.replace("{n}", String(level)),
-    accel: shortcuts[`setHeading${level}` as HeadingAction] || undefined,
-    action: { native: `insert-block:h${level}` },
-  }));
-  const blocks: [string, string][] = [
-    ["bullet-list", t.menuBulletList],
-    ["ordered-list", t.menuOrderedList],
-    ["blockquote", t.menuBlockquote],
-    ["code-block", t.menuCodeBlock],
-    ["table", t.menuTable],
-  ];
-  return [
-    {
-      label: t.toolbarHighlight,
-      accel: HIGHLIGHT_COMBO,
-      action: { native: "toggle-mark:highlight" },
-    },
-    // Typora's keys: Control on a Mac too, where Cmd+` is the system's.
-    {
-      label: t.menuStrikethrough,
-      accel: "ctrl+shift+`",
-      action: { native: "toggle-mark:strikethrough" },
-    },
-    {
-      label: t.menuInlineCode,
-      accel: "ctrl+`",
-      action: { native: "toggle-mark:code" },
-    },
-    {
-      label: t.menuInsertLink,
-      accel: "mod+k",
-      action: { native: "insert-link" },
-    },
-    "separator",
-    ...headings,
-    "separator",
-    ...blocks.map(([kind, label]): MenuNode => ({
-      label,
-      action: { native: `insert-block:${kind}` },
-    })),
-  ];
-}
-
-/** The Plugins menu: plugin commands, then Manage Plugins…; none where the
- *  app doesn't show plugins. */
-function pluginsMenu(
-  t: Strings,
-  plugins: readonly PluginMenuEntry[],
-): MenuNode[] {
-  if (!PLUGINS_SHOWN) return [];
-  return [
-    {
-      label: t.menuPlugins,
-      submenu: [
-        ...(plugins.length
-          ? plugins.map((p): MenuEntry => ({
-              label: p.label,
-              action: { native: `plugin-command:${p.command}` },
-            }))
-          : [{ label: t.menuNoPluginCommands, disabled: true }]),
-        "separator",
-        { label: t.menuManagePlugins, action: { native: "manage-plugins" } },
-      ],
-    },
-  ];
-}
-
 export function buildAppMenu(
   t: Strings,
   shortcuts: Shortcuts,
@@ -283,6 +164,7 @@ export function buildAppMenu(
   checks: MenuChecks = {},
   plugins: readonly PluginMenuEntry[] = [],
 ): MenuNode[] {
+  const mode = viewModeChecks(checks);
   return [
     {
       label: t.menuFile,
@@ -393,22 +275,36 @@ export function buildAppMenu(
         },
         "separator",
         {
-          label: t.menuToggleSourceMode,
-          accel: shortcuts.toggleSourceMode,
-          action: { native: "toggle-source-mode" },
-          checked: !!checks.sourceMode,
+          label: t.menuViewMode,
+          submenu: [
+            {
+              label: t.menuViewModeDefault,
+              action: { native: "view-mode-default" },
+              checked: mode.default,
+            },
+            {
+              label: t.menuToggleSourceMode,
+              accel: shortcuts.toggleSourceMode,
+              action: { native: "toggle-source-mode" },
+              checked: mode.source,
+            },
+            {
+              label: t.menuToggleSplitView,
+              accel: shortcuts.toggleSplitView,
+              action: { native: "toggle-split-view" },
+              checked: mode.split,
+            },
+            {
+              label: t.menuToggleReadOnly,
+              action: { native: "toggle-read-only" },
+              checked: mode.readOnly,
+            },
+          ],
         },
         {
-          label: t.menuToggleSplitView,
-          accel: shortcuts.toggleSplitView,
-          action: { native: "toggle-split-view" },
-          checked: !!checks.splitView,
-        },
-        {
-          label: t.menuToggleTypewriterMode,
-          accel: shortcuts.toggleTypewriterMode,
-          action: { native: "toggle-typewriter-mode" },
-          checked: !!checks.typewriter,
+          label: t.menuTrackChanges,
+          action: { native: "track-changes" },
+          checked: !!checks.trackChanges,
         },
         {
           label: t.menuToggleZenMode,
@@ -417,14 +313,10 @@ export function buildAppMenu(
           checked: !!checks.zen,
         },
         {
-          label: t.menuTrackChanges,
-          action: { native: "track-changes" },
-          checked: !!checks.trackChanges,
-        },
-        {
-          label: t.menuToggleReadOnly,
-          action: { native: "toggle-read-only" },
-          checked: !!checks.readOnly,
+          label: t.menuToggleTypewriterMode,
+          accel: shortcuts.toggleTypewriterMode,
+          action: { native: "toggle-typewriter-mode" },
+          checked: !!checks.typewriter,
         },
         "separator",
         {

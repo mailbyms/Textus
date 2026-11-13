@@ -18,6 +18,8 @@ export interface UiState {
   sidebarOpen: boolean;
   /** The sidebar tab last shown: files, outline or clipboard. */
   sidebarTab: string;
+  /** The sidebar's tabs as the user dragged them, by id. */
+  sidebarTabOrder: string[];
   /** iOS: recently opened documents, newest first. */
   iosRecentDocuments: unknown;
   /** iOS: the document list's layout. */
@@ -51,12 +53,23 @@ export interface UiState {
   /** The note embeds folded, by the document they are in and what they
    *  show, oldest first. */
   foldedEmbeds: string[];
+  /** The drawn blocks folded (editor/fold/block-fold.ts), by document and
+   *  place, oldest first. */
+  foldedBlocks: string[];
+  /** The drawn blocks opened by hand, so one folded in a narrow column
+   *  stays open. */
+  openedBlocks: string[];
+  /** With embeds shown as cards, the ones opened, the same way. */
+  openedEmbeds: string[];
   /** The plugin suggestion card's answers by situation: how many times
    *  Later put it off, or "never" (plugins/store/plugin-card.ts). */
   pluginCardAnswers: Record<string, number | "never">;
   /** The plugins whose first scheduled job brought up the notice about
    *  background mode, once each. */
   pluginsToldOfSchedule: string[];
+  /** Features that left the core for an official plugin, each offered to
+   *  those who used it once (plugins/store/moved-offer.ts). */
+  movedToPluginsOffered: string[];
   /** "plugin key" pairs whose manifest key was someone else's, told once. */
   pluginKeysTold: string[];
   /** Who the user chose to do what more than one plugin on claims
@@ -71,6 +84,9 @@ export interface UiState {
   /** The folder a document was last saved into with Save As, where the
    *  next untitled one is offered to go when no folder is open. */
   lastSaveFolder: string;
+  /** Each project's tabs as it was left, by folder, the one in front last
+   *  (app/start-project.ts). */
+  projectTabs: Record<string, string[]>;
 }
 
 export interface ThemeChromeCache {
@@ -96,6 +112,11 @@ const LOCAL: {
     encode: (value: UiState[K]) => string;
   };
 } = {
+  projectTabs: {
+    key: "textus-project-tabs",
+    decode: (raw) => JSON.parse(raw),
+    encode: (value) => JSON.stringify(value),
+  },
   lastSaveFolder: {
     key: "textus-last-save-folder",
     decode: (raw) => raw,
@@ -130,6 +151,11 @@ const LOCAL: {
     key: "textus-sidebar-tab",
     decode: (raw) => raw,
     encode: (value) => value,
+  },
+  sidebarTabOrder: {
+    key: "textus-sidebar-tab-order",
+    decode: (raw) => JSON.parse(raw),
+    encode: (value) => JSON.stringify(value),
   },
   iosRecentDocuments: {
     key: "textus-ios-recent-documents",
@@ -186,8 +212,23 @@ const LOCAL: {
     decode: (raw) => JSON.parse(raw),
     encode: (value) => JSON.stringify(value),
   },
+  foldedBlocks: {
+    key: "textus-folded-blocks",
+    decode: (raw) => JSON.parse(raw),
+    encode: (value) => JSON.stringify(value),
+  },
+  openedBlocks: {
+    key: "textus-opened-blocks",
+    decode: (raw) => JSON.parse(raw),
+    encode: (value) => JSON.stringify(value),
+  },
   foldedEmbeds: {
     key: "textus-folded-embeds",
+    decode: (raw) => JSON.parse(raw),
+    encode: (value) => JSON.stringify(value),
+  },
+  openedEmbeds: {
+    key: "textus-opened-embeds",
     decode: (raw) => JSON.parse(raw),
     encode: (value) => JSON.stringify(value),
   },
