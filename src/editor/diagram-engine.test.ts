@@ -139,11 +139,11 @@ describe("diagramRenderer", () => {
     });
   });
 
-  it("draws a light pass in the grey palette", async () => {
+  it("draws a light pass in Mermaid's coloured palette", async () => {
     const draw = diagramRenderer("mermaid", { width: 500, dark: false });
     await draw(FLOW, "d1");
     expect(mermaid.initialize.mock.calls[0][0]).toMatchObject({
-      theme: "neutral",
+      theme: "default",
     });
   });
 
@@ -165,8 +165,8 @@ describe("mermaidTheme", () => {
     document.body.style.removeProperty("--doc-mermaid-theme");
   });
 
-  it("gives the light appearance the grey palette", () => {
-    expect(mermaidTheme(false)).toBe("neutral");
+  it("gives the light appearance Mermaid's coloured palette", () => {
+    expect(mermaidTheme(false)).toBe("default");
   });
 
   it("gives the dark appearance Mermaid's dark palette", () => {
@@ -181,10 +181,10 @@ describe("mermaidTheme", () => {
 
   it("ignores a theme Mermaid does not know, or turning its colours off", () => {
     document.body.style.setProperty("--doc-mermaid-theme", "vibrant");
-    expect(mermaidTheme(false)).toBe("neutral");
+    expect(mermaidTheme(false)).toBe("default");
     expect(mermaidTheme(true)).toBe("dark");
     document.body.style.setProperty("--doc-mermaid-theme", "null");
-    expect(mermaidTheme(false)).toBe("neutral");
+    expect(mermaidTheme(false)).toBe("default");
   });
 });
 

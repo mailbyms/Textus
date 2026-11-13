@@ -1,6 +1,5 @@
 import type { Lang } from "../i18n/strings";
 import type { McpServer } from "./mcp";
-import type { UpdateChannel } from "../platform/update-channel";
 import { DEFAULT_IMAGE_SUBFOLDER } from "./image-folder";
 import { DEFAULT_SHORTCUTS, type Shortcuts } from "./shortcut-defaults";
 
@@ -304,7 +303,7 @@ export interface Settings {
    *  not changed. */
   imageAlign: ImageAlign;
   /// Windows and Linux: the menus along the app-drawn window bar instead of
-  /// behind ☰. On, the bar has no sidebar button.
+  /// behind ☰. On, the bar has no sidebar button. On by default.
   menuBarShown: boolean;
   /// Typing "*", "**", "~~", "==" or "`" puts the closing mark in at once. Off,
   /// a complete "**text**" still turns into bold.
@@ -374,9 +373,6 @@ export interface Settings {
   /** The user's own Pandoc arguments by format ("all" for every one), as
    *  argv lists; never run through a shell. */
   pandocArgs: Partial<Record<PandocArgsFormat, string[]>>;
-  /** Which releases the updater offers: "stable", or "beta" for release
-   *  candidates as well. */
-  updateChannel: UpdateChannel;
   /// Set once the first-run tutorial has been shown or skipped, in case a
   /// window closes mid-tutorial.
   onboardingShown: boolean;
@@ -447,7 +443,7 @@ export const DEFAULT_SETTINGS: Settings = {
   zenMode: false,
   contentWidth: "auto",
   imageAlign: "center",
-  menuBarShown: false,
+  menuBarShown: true,
   autoCloseMarks: true,
   autoCloseBrackets: true,
   plainTextMenu: false,
@@ -477,7 +473,6 @@ export const DEFAULT_SETTINGS: Settings = {
   exportBibliography: "",
   exportCsl: "",
   pandocArgs: {},
-  updateChannel: "stable",
   onboardingShown: false,
   enableChatHistory: true,
   enableClipboardHistory: true,

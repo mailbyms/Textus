@@ -16,7 +16,7 @@ built with Tauri 2.
   their layers; ESLint enforces the import direction.
   [docs/dev/reuse.md](docs/dev/reuse.md) lists the one place for each
   common need (surfaces, menus, lists, links, paths, Textus AI): reuse it.
-- `src-tauri/src/` - Rust backend: windows, files, menus, updater, the AI
+- `src-tauri/src/` - Rust backend: windows, files, menus, the AI
   agent. `src-tauri/crates/aicompat/` - the AI provider client.
 - `e2e/` - Playwright flows; `e2e/shots/` - screenshot generators (not tests).
 - `docs/dev/` developer docs, `docs/design/` design and AI behaviour,
@@ -142,9 +142,6 @@ If another copy of the e2e suite may be running (another worktree), set
   scratch folder instead. Don't kill processes you didn't start.
 - Don't drive the user's desktop (synthetic key presses, focusing windows)
   without being asked.
-- The updater: Textus publishes `textus-latest.json`, never `latest.json`
-  (that name belongs to old Levis installs). `npm run check` guards this; don't
-  work around it. See [docs/dev/releasing.md](docs/dev/releasing.md).
 - Don't change signing, notarization, release or store workflows unless the
   task is about them.
 

@@ -17,6 +17,10 @@ describe("newcomer guide eligibility", () => {
     expect(settings.autoSuggestFilename).toBe(true);
   });
 
+  it("shows the horizontal menu bar on a new installation", () => {
+    expect(loadSettings().menuBarShown).toBe(true);
+  });
+
   it("exports PDFs without page numbers until they are switched on", () => {
     expect(loadSettings().pdfPageNumbers).toBe(false);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify({ language: "zh" }));
@@ -38,22 +42,6 @@ describe("newcomer guide eligibility", () => {
       }),
     );
     expect(loadSettings().pandocArgs).toEqual({ docx: ["-V", "lang=de"] });
-  });
-
-  it("updates from the stable channel unless beta was chosen", () => {
-    expect(loadSettings().updateChannel).toBe("stable");
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ language: "zh" }));
-    expect(loadSettings().updateChannel).toBe("stable");
-    localStorage.setItem(
-      SETTINGS_KEY,
-      JSON.stringify({ language: "zh", updateChannel: "beta" }),
-    );
-    expect(loadSettings().updateChannel).toBe("beta");
-    localStorage.setItem(
-      SETTINGS_KEY,
-      JSON.stringify({ language: "zh", updateChannel: "nightly" }),
-    );
-    expect(loadSettings().updateChannel).toBe("stable");
   });
 
   it("keeps the guide and the welcome due while the settings don't say otherwise", () => {

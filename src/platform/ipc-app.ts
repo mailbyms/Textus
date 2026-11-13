@@ -1,5 +1,3 @@
-import { Update } from "@tauri-apps/plugin-updater";
-import type { UpdateChannel } from "./update-channel";
 import type {
   ChatHandoff,
   ChatHandoffState,
@@ -16,7 +14,7 @@ import {
 
 /**
  * Backend commands for the app around the document: windows, menu, links,
- * export, themes, background mode, the default editor and updates.
+ * export, themes, background mode and the default editor.
  */
 
 export interface FloatingDragArgs {
@@ -347,35 +345,3 @@ export const defaultEditor = {
 };
 
 // Distribution
-
-/** The channel this build was installed through. */
-export type Distribution = "direct" | "homebrew" | "aur";
-
-export const distribution = {
-  appDistribution: () => command("app_distribution") as Promise<Distribution>,
-};
-
-// Update (desktop only)
-
-/** What the updater plugin's `Update` is made from. */
-export type UpdateMetadata = ConstructorParameters<typeof Update>[0];
-
-export const updater = {
-  /** The plugin's `check()` on `channel`'s endpoints. `backToStable` offers
-   *  a beta install the newest stable release, only when the user asks. */
-  check: async (
-    channel: UpdateChannel,
-    backToStable = false,
-  ): Promise<Update | null> => {
-    const metadata = (await desktopQueryCommand(
-      "check_for_update",
-      null,
-      channel,
-      backToStable,
-    )) as UpdateMetadata | null;
-    return metadata ? new Update(metadata) : null;
-  },
-  /** Right before the relaunch that applies an update, so the new process
-   *  is the running Textus. */
-  releaseInstance: () => desktopQueryCommand("release_instance", null),
-};

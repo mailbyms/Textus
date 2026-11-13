@@ -18,14 +18,13 @@
 /scripts/guard-ci-config.mjs       @ChengAoShen @jzzzzh
 /scripts/check-*.mjs               @ChengAoShen @jzzzzh
 
-# Release tooling: versions, the updater manifest, the download mirror
+# Release tooling: versions and the download mirror
 /scripts/check-versions.mjs        @ChengAoShen @jzzzzh
-/scripts/updater-manifest.mjs      @ChengAoShen @jzzzzh
 /scripts/mirror-downloads.sh       @ChengAoShen @jzzzzh
 /scripts/package-linux-tarball.sh  @ChengAoShen @jzzzzh
 /scripts/ios-prepare.sh            @ChengAoShen @jzzzzh
 
-# App identity, updater key, permissions and signing settings
+# App identity, permissions and signing settings
 /src-tauri/tauri*.conf.json        @ChengAoShen @jzzzzh
 /src-tauri/capabilities/           @ChengAoShen @jzzzzh
 /src-tauri/Info.ios.plist          @ChengAoShen @jzzzzh

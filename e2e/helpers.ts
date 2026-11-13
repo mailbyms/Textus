@@ -93,6 +93,10 @@ export async function openApp(
           language: "zh",
           languageChosen: true,
           onboardingShown: true,
+          // The shipped default is the horizontal menu bar, but the flows
+          // here were written against the ☰ button. Specs that exercise the
+          // bar pass menuBarShown: true of their own.
+          menuBarShown: false,
           ...settings,
         }),
       );

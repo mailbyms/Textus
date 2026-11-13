@@ -174,7 +174,7 @@ export function SettingsPanel({
 
   const renderSubpage = (s: Subpage) =>
     s === "about" ? (
-      <AboutSection t={t} checkNow={initialCategory === "updates"} />
+      <AboutSection t={t} />
     ) : (
       <>
         <h1 className="settings-category-title">{subpageTitles[s]}</h1>
@@ -368,14 +368,8 @@ export function SettingsPanel({
  *  `home` is the phone's list of categories, which General is opened from;
  *  `direction` says whether the last move went in or back. */
 function useSettingsNav(initialCategory: Category) {
-  // "updates" is General › About.
-  const updates = initialCategory === "updates";
-  const [category, setCategory] = useState<Category>(
-    updates ? "general" : initialCategory,
-  );
-  const [subpage, setSubpage] = useState<Subpage | null>(
-    updates ? "about" : null,
-  );
+  const [category, setCategory] = useState<Category>(initialCategory);
+  const [subpage, setSubpage] = useState<Subpage | null>(null);
   const [jump, setJump] = useState<SearchEntry | null>(null);
   const [home, setHome] = useState(initialCategory === "general");
   const [direction, setDirection] = useState<"push" | "pop" | null>(null);

@@ -65,8 +65,6 @@ pub(crate) fn build(
         let about = format!("About {name}");
         let builder = SubmenuBuilder::new(app, name)
             .about_with_text(label(labels, "predefined:about", &about), None);
-        #[cfg(target_os = "macos")]
-        let builder = builder.text(UPDATES_ID, l(UPDATES_ID, "Check for Updates…"));
         let builder = builder.separator().item(&settings_item);
         // Hide / Hide Others / Show All are macOS concepts; elsewhere they did nothing.
         #[cfg(target_os = "macos")]

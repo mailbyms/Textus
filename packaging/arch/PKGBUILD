@@ -1,8 +1,8 @@
 # Maintainer: CatVinci Studio
 #
 # Repackages the prebuilt tarball from the GitHub Release. That binary is
-# built with TEXTUS_DISTRIBUTION=aur, so Textus reports new versions but leaves
-# the upgrade to pacman. See packaging/arch/README.md.
+# built from a --no-bundle build; pacman owns the upgrade.
+# See packaging/arch/README.md.
 pkgname=textus-bin
 pkgver=1.0.0
 # The release version. It differs from pkgver only for a pre-release

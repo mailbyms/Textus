@@ -26,7 +26,6 @@ export const DEVICE_SETTINGS = [
   "proxyPort",
   "zoom",
   "runInBackground",
-  "updateChannel",
 ] as const satisfies readonly (keyof Settings)[];
 
 /** An imported theme's CSS, by theme id. */

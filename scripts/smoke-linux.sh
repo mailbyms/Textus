@@ -47,9 +47,7 @@ binary="$root/src-tauri/target/release/textus"
 deb="$root/src-tauri/target/release/bundle/deb/Textus_${version}_amd64.deb"
 
 if [ "$build" = 1 ]; then
-  # No updater artifacts: signing them needs the release key, which only CI has.
-  (cd "$root" && npm run tauri build -- --bundles deb \
-    -c '{"bundle":{"createUpdaterArtifacts":false}}')
+  (cd "$root" && npm run tauri build -- --bundles deb)
 fi
 [ -x "$binary" ] || fail "no release binary at $binary (run with --build)"
 [ -f "$deb" ] || fail "no package at $deb (run with --build)"

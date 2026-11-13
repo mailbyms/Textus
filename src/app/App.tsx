@@ -23,12 +23,7 @@ import { Sidebar } from "./Sidebar";
 import { MainPane } from "./MainPane";
 import { AgentPanelDock } from "./AgentPanelDock";
 import { ClosePrompt } from "./ClosePrompt";
-import {
-  DraftRestoredToast,
-  UpdateToast,
-  WordImportNotice,
-  ZenHint,
-} from "./AppNotices";
+import { DraftRestoredToast, WordImportNotice, ZenHint } from "./AppNotices";
 import { OnboardingLayers } from "./OnboardingLayers";
 import { QuickPickHost } from "../ui/quick-pick";
 import { PluginFormHost } from "../plugins/views/plugin-form";
@@ -59,8 +54,7 @@ function App() {
   const wiring = useWindowWiring({ shell, docs, settings, setSettings, t });
   const phone = usePhoneLayout();
 
-  const { textusAi, tutorial, settingsOpening, appUpdate, pendingClose } =
-    shell;
+  const { textusAi, tutorial, settingsOpening, pendingClose } = shell;
   const { draftsRestoredCount, setDraftsRestoredCount, wordImported } = shell;
   const { tabs, activeTabId, setActiveTabId, addBlankTab, reorderTab } =
     shell.tabState;
@@ -279,7 +273,6 @@ function App() {
         <CornerStack corner="end">
           <SuggestCard t={t} />
           <ConventionsCard path={activeTab.path} settings={settings} t={t} />
-          <UpdateToast appUpdate={appUpdate} t={t} />
         </CornerStack>
 
         <OnboardingLayers

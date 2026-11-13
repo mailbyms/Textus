@@ -14,7 +14,6 @@ pub mod cli;
 mod bindings;
 mod commands;
 mod conventions;
-mod distribution;
 mod ext_stats;
 mod extract;
 #[cfg(desktop)]
@@ -83,13 +82,11 @@ mod launch;
 pub(crate) use launch::*;
 pub(crate) mod editor_windows;
 
-/// Everything the builder needs on desktop only: the updater, window/tab/session
-/// state, window lifecycle, and startup's argv, session restore and menu bar.
+/// Everything the builder needs on desktop only: window/tab/session state,
+/// window lifecycle, and startup's argv, session restore and menu bar.
 #[cfg(desktop)]
 fn desktop_builder(builder: tauri::Builder<tauri::Wry>) -> tauri::Builder<tauri::Wry> {
     builder
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_process::init())
         .manage(PendingDetachedTabs(Mutex::new(HashMap::new())))
         .manage(DragTrackers::default())
         .manage(SessionTabsState(Mutex::new(HashMap::new())))
@@ -370,7 +367,6 @@ pub fn run() {
             commands::undo_files::undo_file_move,
             commands::own_notes::own_notes_read,
             commands::own_notes::own_notes_write,
-            distribution::app_distribution,
             #[cfg(desktop)]
             background::tray::set_tray_plugin_items,
             #[cfg(desktop)]
@@ -520,10 +516,6 @@ pub fn run() {
             commands::default_editor::default_editor_status,
             #[cfg(desktop)]
             commands::default_editor::set_default_editor,
-            #[cfg(desktop)]
-            commands::update::check_for_update,
-            #[cfg(desktop)]
-            commands::update::release_instance,
             #[cfg(desktop)]
             detect_pandoc,
             #[cfg(desktop)]

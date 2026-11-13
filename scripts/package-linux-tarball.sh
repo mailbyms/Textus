@@ -9,7 +9,6 @@
 #       └── licenses/textus/LICENSE
 #
 # Usage: scripts/package-linux-tarball.sh <version> <binary> <out-dir>
-# Build the binary with TEXTUS_DISTRIBUTION=aur so it does not update itself.
 set -euo pipefail
 
 version="$1"

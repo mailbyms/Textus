@@ -159,7 +159,6 @@ export function useWindowWiring({
     diagramEngine: settings.diagramEngine,
     pandocSettings: settings,
     onOpenSettings: shell.settingsOpening.openSettings,
-    onCheckUpdates: shell.settingsOpening.openUpdates,
     onOpenPluginSettings: shell.settingsOpening.openPluginSettings,
     onToggleTypewriter: () =>
       setSettings({ typewriterMode: !settings.typewriterMode }),

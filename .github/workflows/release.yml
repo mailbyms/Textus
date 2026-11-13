@@ -55,13 +55,6 @@ jobs:
       - name: Tag matches the app version
         run: node scripts/check-versions.mjs --root tagged --tag "$RELEASE_TAG"
 
-      # The tagged app reads textus-latest.json and its workflow keeps
-      # tauri-action from uploading latest.json - the manifest every Levis
-      # install reads (scripts/updater-manifest.mjs). This also refuses a
-      # rebuild of an old Levis tag from this workflow.
-      - name: Updater never serves Levis's manifest
-        run: node scripts/updater-manifest.mjs check --root tagged
-
       # Required for a newly pushed stable tag. A rebuild of a tag from
       # before release notes were kept (0.8.10 and older) only warns.
       - name: Release notes exist for a stable tag
@@ -245,18 +238,10 @@ jobs:
 
       - name: Build and release
         # Pinned to the commit of v1.0.0: a moving major tag could change how
-        # the release is built between two tags. 1.0 renamed
-        # includeUpdaterJson to uploadUpdaterJson; updater-manifest.mjs
-        # checks the name that matches the version in the comment below.
+        # the release is built between two tags.
         uses: tauri-apps/tauri-action@1deb371b0cd8bd54025b384f1cd735e725c4060f # v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Signs the updater artifacts (the .sig files) so installed apps
-          # can verify downloads against the pubkey baked into
-          # tauri.conf.json. It is Levis's key, reused: that is why Textus
-          # must never publish a latest.json (see uploadUpdaterJson below).
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           # macOS code signing + notarization (Gatekeeper). tauri-action
           # imports the base64 .p12 into a temp keychain; the bundler then
           # signs the .app with hardened runtime, notarizes the DMG with
@@ -272,33 +257,20 @@ jobs:
         with:
           tagName: ${{ env.RELEASE_TAG }}
           releaseName: "${{ env.PRODUCT_NAME }} ${{ env.RELEASE_TAG }}"
-          # Keep partial matrix builds away from the updater. The publish
-          # job exposes the release only after every build succeeds.
+          # The publish job exposes the release only after every build
+          # in the matrix succeeds.
           releaseDraft: true
           # A semver pre-release suffix (v0.9.0-rc.1, -beta.2, -alpha) marks
-          # the GitHub release as a pre-release. That is what keeps it away
-          # from everyone else: the updater endpoint in tauri.conf.json points
-          # at `releases/latest/...`, and GitHub's "latest" excludes
-          # pre-releases - so a stable install never even sees this build's
-          # manifest. Without this the tag pattern below (v*.*.*) matches
-          # an rc tag too and would ship it to every user as the new stable.
+          # the GitHub release as a pre-release. Without this the tag pattern
+          # below (v*.*.*) matches an rc tag too and would ship it as stable.
           prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
-          # Never upload latest.json: Levis 0.9.x installs read that name
-          # from this repository (the old CatVinci-Studio/Levis URL
-          # redirects here) and trust the same signing key, so they would
-          # install Textus over themselves. The publish job writes
-          # textus-latest.json from the uploaded .sig files instead.
-          # scripts/updater-manifest.mjs check fails if this line goes.
-          # (tauri-action before 1.0 called this input includeUpdaterJson.)
-          uploadUpdaterJson: false
           # RPM versions may not contain '-', so a pre-release (1.0.4-rc.1)
           # cannot be an .rpm; rc tags ship the .deb and AppImage only, on
           # x64 and ARM64 alike.
           args: ${{ matrix.args }}${{ startsWith(matrix.platform, 'ubuntu-') && contains(env.RELEASE_TAG, '-') && ' --bundles deb,appimage' || '' }}
 
-      # textus-bin (packaging/arch/PKGBUILD) installs this tarball. Its
-      # binary is a second build with TEXTUS_DISTRIBUTION=aur: it reports new
-      # versions but does not install them, because pacman owns /usr/bin.
+      # textus-bin (packaging/arch/PKGBUILD) installs this tarball. It is a
+      # second --no-bundle build; pacman owns /usr/bin.
       # --no-bundle recompiles only the textus crate and skips the installers.
       # x86_64 only: the package is built and tested in the x86_64-only
       # archlinux container, and [catvinci] serves no aarch64 repository.
@@ -307,7 +279,6 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TEXTUS_DISTRIBUTION: aur
         run: |
           npx tauri build --no-bundle
           scripts/package-linux-tarball.sh "${RELEASE_TAG#v}" \
@@ -341,46 +312,6 @@ jobs:
         with:
           node-version: 22
 
-      # The updater reads textus-latest.json from the newest release the
-      # moment it is published. It is written here, once every platform's
-      # signed artifacts are on the draft, from their .sig files: each
-      # artifact's URL is the release's download URL plus its asset name.
-      # A platform whose build silently failed to upload (a race, an upload
-      # error) has no .sig, and the build step fails rather than leave every
-      # user of that platform without the update.
-      - name: Write the updater manifest (textus-latest.json)
-        run: |
-          sigs="$RUNNER_TEMP/sigs"
-          mkdir -p "$sigs"
-          gh release download "$RELEASE_TAG" --pattern '*.sig' --dir "$sigs" --clobber
-          notes="docs/releases/${RELEASE_TAG#v}.md"
-          node scripts/updater-manifest.mjs build \
-            --version "${RELEASE_TAG#v}" \
-            --base-url "https://github.com/${GITHUB_REPOSITORY}/releases/download/${RELEASE_TAG}" \
-            --sig-dir "$sigs" \
-            $([ -f "$notes" ] && printf -- '--notes-file %s' "$notes") \
-            --out "$RUNNER_TEMP/textus-latest.json"
-          jq '{version, platforms: (.platforms | keys)}' "$RUNNER_TEMP/textus-latest.json"
-          gh release upload "$RELEASE_TAG" "$RUNNER_TEMP/textus-latest.json" --clobber
-
-      # The last gate before anything is public: no latest.json on the
-      # release. Levis installs read that name from the newest release (the
-      # old repository URL redirects here) and trust the same signing key,
-      # so they would install whatever it names over Levis. Releases up to
-      # 1.1.0 carried a copy of Levis 0.9.8's own; Levis support ended
-      # there, so none is allowed now. A rebuild of one of those tags stops
-      # here until that copy is deleted from the release.
-      - name: No latest.json on the release
-        run: |
-          gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name' \
-            > "$RUNNER_TEMP/assets.txt"
-          node scripts/updater-manifest.mjs guard --assets-file "$RUNNER_TEMP/assets.txt"
-
-      # A workflow_dispatch rebuild of an old tag republishes that release,
-      # but making it "Latest" or pointing the mirror or arch-repo at it
-      # would downgrade everyone. Asked here, after the builds, not when
-      # the run started: a hotfix tag pushed while this one was still
-      # building is newer by the time this one is published.
       - name: Is this the newest stable tag?
         id: newest
         run: |
@@ -410,17 +341,6 @@ jobs:
           else
             gh release edit "$RELEASE_TAG" --draft=false --latest=false
           fi
-
-  # After publishing every tag, release candidates included: the beta update
-  # channel's manifest (textus-beta.json on the download bucket), which is
-  # that channel's only way to see a pre-release. It moves only forward, so
-  # rebuilding an older tag leaves it where it is.
-  update-beta-manifest:
-    needs: publish
-    uses: ./.github/workflows/update-beta-manifest.yml
-    with:
-      tag: ${{ inputs.tag || github.ref_name }}
-    secrets: inherit
 
   # After publishing, only for the newest stable tag: the download mirror
   # and the [catvinci] pacman repository. Pre-releases have no channel of

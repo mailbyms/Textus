@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useSettingsOpening } from "./SettingsLayer";
 import { useTutorial } from "../onboarding/useTutorial";
 import { useTutorialDocumentEvaluation } from "../onboarding/useTutorialDocumentEvaluation";
-import { useAppUpdate } from "./useAppUpdate";
 import { useZoom } from "./useZoom";
 import { useDraftAutosave } from "../document/draft-autosave";
 import { useTextusAi, useTextusAiResume } from "../ai/TextusAiSwitch";
@@ -15,7 +14,7 @@ import type { Settings, useSettings } from "../prefs/SettingsContext";
 
 /**
  * A window's frame: tabs, the close prompt, Textus AI's switch, side panels,
- * Settings, updates, zoom, the tour and draft recovery.
+ * Settings, zoom, the tour and draft recovery.
  */
 export function useWindowShell({
   settings,
@@ -31,7 +30,6 @@ export function useWindowShell({
   useTextusAiResume();
   const panels = useSidePanels(textusAi.on);
   const settingsOpening = useSettingsOpening();
-  const appUpdate = useAppUpdate(settings.updateChannel);
   useZoom(settings.zoom, (zoom) => setSettings({ zoom }));
   const tutorial = useTutorial(textusAi.on);
   const evaluateTutorialDocumentChange =
@@ -55,7 +53,6 @@ export function useWindowShell({
     textusAi,
     panels,
     settingsOpening,
-    appUpdate,
     tutorial,
     evaluateTutorialDocumentChange,
     cancelDraftFlushes,

@@ -1,10 +1,6 @@
 import { normaliseMcpServers } from "./mcp";
 import { hasTextusAi } from "../platform/capabilities";
 import { detectLang, isLang, localeOf, type Lang } from "../i18n/strings";
-import {
-  UPDATE_CHANNELS,
-  type UpdateChannel,
-} from "../platform/update-channel";
 import { isRecord, type Raw } from "./settings-sync";
 import { storedImageFolder } from "./image-folder";
 import { storedShortcuts } from "./shortcut-defaults";
@@ -168,11 +164,6 @@ function readSettings(parsed: Raw | null): Settings {
       theme: THEME_MODES.includes(parsed.theme as ThemeMode)
         ? (parsed.theme as ThemeMode)
         : DEFAULT_SETTINGS.theme,
-      updateChannel: UPDATE_CHANNELS.includes(
-        parsed.updateChannel as UpdateChannel,
-      )
-        ? (parsed.updateChannel as UpdateChannel)
-        : DEFAULT_SETTINGS.updateChannel,
       imageFolder: storedImageFolder(parsed.imageFolder),
       imageHost: IMAGE_HOSTS.includes(parsed.imageHost as ImageHost)
         ? (parsed.imageHost as ImageHost)

@@ -8,8 +8,5 @@
         "title": "Textus"
       }
     ]
-  },
-  "bundle": {
-    "createUpdaterArtifacts": false
   }
 }

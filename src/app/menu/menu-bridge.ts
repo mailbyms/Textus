@@ -46,8 +46,6 @@ export interface MenuBridgeHandlers {
   /** Settings › Editor › Export, for a Pandoc export. */
   pandocSettings: PandocSettings;
   onOpenSettings: () => void;
-  /** Textus › Check for Updates…: Settings › About, checking. */
-  onCheckUpdates: () => void;
   onOpenPluginSettings: () => void;
   onToggleTypewriter: () => void;
   onToggleSidebar: () => void;
@@ -105,7 +103,6 @@ export function useMenuBridge(handlers: MenuBridgeHandlers): void {
     };
     return unlistenAll(
       listenToThisWindow("menu-open-settings", () => h().onOpenSettings()),
-      listenToThisWindow("menu-check-updates", () => h().onCheckUpdates()),
       listenToThisWindow("menu-manage-plugins", () =>
         h().onOpenPluginSettings(),
       ),

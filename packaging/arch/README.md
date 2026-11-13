@@ -2,9 +2,7 @@
 
 `PKGBUILD` repackages `Textus_<version>_linux_x86_64.tar.gz`, which
 `.github/workflows/release.yml` attaches to every GitHub Release. That
-binary is built with `TEXTUS_DISTRIBUTION=aur`
-(`src-tauri/src/distribution.rs`): it reports new versions, but the upgrade
-goes through pacman.
+binary is a `--no-bundle` build; the upgrade goes through pacman.
 
 The package is x86_64 only, although the release also builds Linux for
 ARM64: the checks below run in the `archlinux` container, which has no

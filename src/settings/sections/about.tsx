@@ -2,19 +2,11 @@ import { useEffect, useState } from "react";
 import { appVersion } from "../../platform/app-info";
 import type { Strings } from "../../i18n/strings";
 import { links } from "../../platform/ipc";
-import { UpdateButton, UpdateChannelRow } from "./general";
 import appIcon from "../../../src-tauri/icons/128x128@2x.png";
 
-/** Settings › General › About Textus: the app, its version and updates,
- *  its code, where to talk with us, and who made it. */
-export function AboutSection({
-  t,
-  checkNow = false,
-}: {
-  t: Strings;
-  /** Opened from Check for Updates…: check at once. */
-  checkNow?: boolean;
-}) {
+/** Settings › General › About Textus: the app and its version, its code,
+ *  where to talk with us, and who made it. */
+export function AboutSection({ t }: { t: Strings }) {
   const [version, setVersion] = useState("");
 
   useEffect(() => {
@@ -52,9 +44,7 @@ export function AboutSection({
         >
           {t.aboutQq}
         </button>
-        <UpdateButton t={t} checkOnOpen={checkNow} />
       </div>
-      <UpdateChannelRow t={t} />
       <div className="settings-about-credit">{t.aboutMadeBy}</div>
     </div>
   );

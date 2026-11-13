@@ -4,7 +4,7 @@ name: CI
 # (CONTRIBUTING.md), so a green local run means a green CI run:
 #
 #   check    npm run check         types, lint, unit tests, formatting,
-#                                  README/version/updater checks; and the build
+#                                  README/version checks; and the build
 #   e2e      npm run test:e2e      the Playwright flows in Chromium, split by
 #                                  test across four machines; e2e-webkit runs
 #                                  the WebKit ones (not yet required)

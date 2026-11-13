@@ -290,8 +290,7 @@ Function PageReinstall
 
   ; Textus: reinstalling the same version, or upgrading, needs no decision
   ; from the user - skip the page and install straight over the existing
-  ; copy, which is exactly what an in-app update already does. Upstream
-  ; always asks, and "do you want to uninstall first" in front of an ordinary
+  ; copy. Upstream always asks, and "do you want to uninstall first" in an ordinary
   ; update reads as though the update cannot proceed without it.
   ;
   ; Two cases deliberately keep the page: a DOWNGRADE, where being told the

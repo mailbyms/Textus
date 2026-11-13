@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Checks every file carrying the app's version agrees on it, or the About
-// box, updater and installer names disagree. `--tag` also checks the tag and,
+// box and the installer disagree. `--tag` also checks the tag and,
 // for a stable one, that no release-note fragments are left.
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";

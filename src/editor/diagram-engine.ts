@@ -36,8 +36,8 @@ const MERMAID_THEMES: readonly MermaidThemeName[] = [
 
 /** The Mermaid theme for the page: what an imported theme or the user's CSS
  *  sets as --doc-mermaid-theme when it names one Mermaid knows, else "dark"
- *  in the dark appearance and the grey "neutral" in the light. Read on
- *  `body`, so a theme may set the variable on it or on the root. */
+ *  in the dark appearance and Mermaid's own coloured "default" in the light.
+ *  Read on `body`, so a theme may set the variable on it or on the root. */
 export function mermaidTheme(dark = appearanceIsDark()): MermaidThemeName {
   const chosen = getComputedStyle(document.body)
     .getPropertyValue("--doc-mermaid-theme")
@@ -47,7 +47,7 @@ export function mermaidTheme(dark = appearanceIsDark()): MermaidThemeName {
     ? (chosen as MermaidThemeName)
     : dark
       ? "dark"
-      : "neutral";
+      : "default";
 }
 
 // Re-applied before every pass because the width follows the text column:

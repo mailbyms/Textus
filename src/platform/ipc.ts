@@ -42,7 +42,6 @@ import type {
 } from "./ipc-ai-types";
 export { IpcError } from "./ipc-call";
 export * from "./ipc-plugins";
-export type { UpdateChannel } from "./update-channel";
 export {
   type SavedImage,
   type IndexedFile,
@@ -75,9 +74,6 @@ export {
   type CliStatus,
   type DefaultEditorStatus,
   defaultEditor,
-  type Distribution,
-  distribution,
-  updater,
 } from "./ipc-app";
 export {
   type OauthStatus,

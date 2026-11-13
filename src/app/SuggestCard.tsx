@@ -62,7 +62,7 @@ export function SuggestCard({ t }: { t: Strings }) {
                     },
                   ]
                 : []),
-              { label: t.updateLater, onSelect: () => answer("later") },
+              { label: t.pluginCardLater, onSelect: () => answer("later") },
             ]
           : []
       }

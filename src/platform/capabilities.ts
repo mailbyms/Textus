@@ -43,9 +43,6 @@ export const canDetachChat = canUseWindows;
 /** Toggling OS fullscreen (zen mode, View > Toggle Full Screen). */
 export const canToggleFullscreen = isDesktopApp;
 
-/** The self-updater. iOS updates come from the App Store. */
-export const canAutoUpdate = isDesktopApp;
-
 /** File > Export as PDF, through each desktop webview's PDF backend. */
 export const canExportPdf = isDesktopApp;
 

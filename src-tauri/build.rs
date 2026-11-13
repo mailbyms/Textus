@@ -1,8 +1,4 @@
 fn main() {
-    // src/distribution.rs reads this with option_env!. Without this line a
-    // cached build would keep the channel of whichever build ran first.
-    println!("cargo:rerun-if-env-changed=TEXTUS_DISTRIBUTION");
-
     // tauri-build embeds its application manifest (Common Controls 6, which
     // the dialogs and the tray need) in the app only. The test binaries
     // link the same Windows APIs, and without it exit at start with

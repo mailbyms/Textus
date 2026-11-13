@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "desktop",
-  "description": "Desktop only: the app-drawn window chrome, zen/fullscreen, the always-on-top chat window, and the updater/process plugins (not built for iOS - see Cargo.toml).",
+  "description": "Desktop only: the app-drawn window chrome, zen/fullscreen, the always-on-top chat window, and window chrome (not built for iOS - see Cargo.toml).",
   "platforms": ["linux", "macOS", "windows"],
   "windows": ["main", "window-*", "chat-*", "floating-*"],
   "permissions": [
@@ -14,8 +14,6 @@
     "core:window:allow-set-always-on-top",
     "core:window:allow-is-fullscreen",
     "core:window:allow-set-fullscreen",
-    "core:window:allow-set-title",
-    "updater:default",
-    "process:default"
+    "core:window:allow-set-title"
   ]
 }

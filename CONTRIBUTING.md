@@ -66,19 +66,19 @@ Every push to `main` that touches it deploys it (`deploy-playground.yml`,
 
 ## Where things are
 
-| Path                         | What                                                |
-| ---------------------------- | --------------------------------------------------- |
-| `src/`                       | the frontend; [architecture.md] maps its folders    |
-| `src-tauri/src/`             | the Rust backend: windows, files, AI agent, updater |
-| `src-tauri/crates/aicompat/` | the AI provider client (no Tauri dependency)        |
-| `src/playground/`            | the browser playground (the editor alone)           |
-| `e2e/*.spec.ts`              | Playwright flows (CI)                               |
-| `e2e/shots/`                 | screenshot generators (README, website, review)     |
-| `scripts/`                   | checks and release tooling, written in Node         |
-| `docs/dev/`                  | developer docs: architecture, testing, storage, …   |
-| `docs/design/`               | design rules and how the AI features work           |
-| `docs/releases/`             | release notes per version; unreleased in `next/`    |
-| `packaging/`                 | Arch package, Linux desktop entry                   |
+| Path                         | What                                              |
+| ---------------------------- | ------------------------------------------------- |
+| `src/`                       | the frontend; [architecture.md] maps its folders  |
+| `src-tauri/src/`             | the Rust backend: windows, files, AI agent        |
+| `src-tauri/crates/aicompat/` | the AI provider client (no Tauri dependency)      |
+| `src/playground/`            | the browser playground (the editor alone)         |
+| `e2e/*.spec.ts`              | Playwright flows (CI)                             |
+| `e2e/shots/`                 | screenshot generators (README, website, review)   |
+| `scripts/`                   | checks and release tooling, written in Node       |
+| `docs/dev/`                  | developer docs: architecture, testing, storage, … |
+| `docs/design/`               | design rules and how the AI features work         |
+| `docs/releases/`             | release notes per version; unreleased in `next/`  |
+| `packaging/`                 | Arch package, Linux desktop entry                 |
 
 [docs/README.md](docs/README.md) lists every document.
 
@@ -89,7 +89,7 @@ Every push to `main` that touches it deploys it (`deploy-playground.yml`,
 Run what CI runs - the same commands on Linux, macOS and Windows:
 
 ```sh
-npm run check          # types, lint, unit tests, formatting, README/version/updater checks
+npm run check          # types, lint, unit tests, formatting, README/version checks
 npm run test:e2e       # the Playwright flows (first time: npm run setup:e2e)
 npm run check:native   # rustfmt, clippy, Rust tests in src-tauri/ (builds dist/ if missing)
 npm run check:all      # all three, in that order
@@ -139,7 +139,7 @@ broke when it fails.
 
 The e2e flows run the frontend in Chromium against the dev Tauri shim, not
 in WebKitGTK or WebView2, so native behaviour - window management, drag
-between windows, file dialogs, the updater - is still verified by running the
+between windows, file dialogs - is still verified by running the
 app. If your change touches those, say in the pull request what you
 exercised by hand.
 

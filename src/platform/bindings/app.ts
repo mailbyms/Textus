@@ -224,14 +224,6 @@ export const commands = {
 	background_status: () => __TAURI_INVOKE<Status>("background_status"),
 	default_editor_status: () => __TAURI_INVOKE<DefaultEditorStatus>("default_editor_status"),
 	set_default_editor: () => __TAURI_INVOKE<null>("set_default_editor"),
-	app_distribution: () => __TAURI_INVOKE<string>("app_distribution"),
-	check_for_update: (channel: string, backToStable: boolean) => __TAURI_INVOKE<UpdateMetadata_Serialize | null>("check_for_update", { channel, backToStable }),
-	/**
-	 *  Just before the relaunch that applies an update: gives up the single-instance
-	 *  claim, which the plugin only drops on a clean exit, or the new process would
-	 *  hand its launch to this dying one. Windows and Linux only.
-	 */
-	release_instance: () => __TAURI_INVOKE<void>("release_instance"),
 };
 
 /* Types */
@@ -501,38 +493,6 @@ export type SystemInfo = {
 	arch: string,
 	/**  The webview's own version: WebKit's, WebView2's or WebKitGTK's. */
 	webview: string,
-};
-
-/**
- *  The plugin's own check answer (its `Metadata`), which the JS `Update` class
- *  is built from.
- */
-export type UpdateMetadata = UpdateMetadata_Serialize | UpdateMetadata_Deserialize;
-
-/**
- *  The plugin's own check answer (its `Metadata`), which the JS `Update` class
- *  is built from.
- */
-export type UpdateMetadata_Deserialize = {
-	rid: number,
-	currentVersion: string,
-	version: string,
-	date?: string | null,
-	body?: string | null,
-	rawJson: Value,
-};
-
-/**
- *  The plugin's own check answer (its `Metadata`), which the JS `Update` class
- *  is built from.
- */
-export type UpdateMetadata_Serialize = {
-	rid: number,
-	currentVersion: string,
-	version: string,
-	date: string | null,
-	body: string | null,
-	rawJson: Value,
 };
 
 export type Value = null | boolean | number | string | Value[] | { [key in string]: Value };
