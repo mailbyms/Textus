@@ -56,3 +56,6 @@ textus-plugins/
 
 # Local agent memory - not project source.
 .workbuddy/
+
+# Hand-built release binaries and notes (published via gh release).
+/release-assets/
