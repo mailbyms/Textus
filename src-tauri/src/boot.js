@@ -57,11 +57,12 @@ window.__textusBoot = function (boot, themeCss) {
       root.setAttribute("data-doc-leading", "");
     }
     // BUILTIN_CONTENT_THEMES in theme/builtin-themes.ts, minus "default"
-    // (which is the absence of the attribute).
-    var builtin = ["paper", "slate", "forest"];
-    if (builtin.indexOf(settings.themeId) >= 0)
+    // (which is the absence of the attribute). Bundled themes arrive as
+    // themeCss too, and need their stylesheet before this attribute path.
+    var builtin = ["paper", "slate", "forest", "github"];
+    if (themeCss) root.setAttribute("data-user-theme", "");
+    else if (builtin.indexOf(settings.themeId) >= 0)
       root.setAttribute("data-content-theme", settings.themeId);
-    else if (themeCss) root.setAttribute("data-user-theme", "");
     // macOS only (native_titlebar_height in lib.rs): what the window bar
     // lines its contents up with, so they sit level with the traffic lights.
     if (typeof boot.titlebarHeight === "number")

@@ -98,6 +98,28 @@ it("applies imported chrome and removes both styles on returning to default", as
   expect(document.getElementById("textus-custom-theme")).toBeNull();
   expect(document.getElementById("textus-imported-chrome")).toBeNull();
 });
+it("injects the bundled GitHub theme without reading a user's theme files", async () => {
+  localStorage.setItem(
+    "catvinci-settings",
+    JSON.stringify({ theme: "light", themeId: "github", userThemes: [] }),
+  );
+  render(
+    <SettingsProvider>
+      <AppearanceSync />
+      <Controls />
+    </SettingsProvider>,
+  );
+  await waitFor(() => expect(applyThemeChrome).toHaveBeenCalled());
+  expect(themes.loadThemeCss).not.toHaveBeenCalled();
+  expect(document.documentElement.hasAttribute("data-content-theme")).toBe(
+    false,
+  );
+  expect(document.documentElement.hasAttribute("data-user-theme")).toBe(true);
+  // Vitest stubs CSS imports; content-themes.test.ts reads the bundled
+  // stylesheet from disk. Here the point is that no user file was read.
+  expect(document.getElementById("textus-custom-theme")).not.toBeNull();
+});
+
 it("does not let a late light-theme response replace a newer dark selection", async () => {
   let resolveLight!: (css: string) => void;
   vi.mocked(themes.loadThemeCss).mockImplementation((_id, variant) =>

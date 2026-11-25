@@ -5,6 +5,11 @@ const css = readFileSync(
   new URL("./content-themes.css", import.meta.url),
   "utf8",
 );
+// Vitest stubs CSS imports, ?raw included; read the bundled theme from disk.
+const bundled = {
+  light: readFileSync(new URL("./github/light.css", import.meta.url), "utf8"),
+  dark: readFileSync(new URL("./github/dark.css", import.meta.url), "utf8"),
+};
 const blocks = [...css.matchAll(/([^{}]+)\{([^{}]+)\}/g)]
   .filter((match) => match[2].includes("--doc-bg:"))
   .map((match) => ({
@@ -22,6 +27,30 @@ const rgb = (hex: string) =>
     number,
     number,
   ];
+describe("bundled built-in themes", () => {
+  it("ships both appearances with current variable names and its credits", () => {
+    for (const css of Object.values(bundled)) {
+      expect(css).toContain("--doc-bg:");
+      expect(css).toContain("github-markdown-css");
+      expect(css).not.toMatch(/--(editor|token)-/);
+    }
+  });
+
+  it("keeps text legible on both pages", () => {
+    for (const css of Object.values(bundled)) {
+      const values = Object.fromEntries(
+        [...css.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [
+          m[1],
+          m[2].trim(),
+        ]),
+      );
+      expect(
+        contrast(rgb(values["--doc-text"]), rgb(values["--doc-bg"])),
+      ).toBeGreaterThanOrEqual(4.5);
+    }
+  });
+});
+
 describe("built-in theme display contract", () => {
   for (const theme of ["paper", "slate", "forest"]) {
     const variants = blocks.filter((b) => b.selector.includes(`"${theme}"`));

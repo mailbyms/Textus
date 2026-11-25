@@ -5,6 +5,7 @@ import {
   galleryStatus,
   installGalleryTheme,
   installedCopy,
+  isBuiltinGalleryTheme,
   type GalleryTheme,
   localizedTheme,
 } from "../../theme/theme-gallery";
@@ -36,6 +37,7 @@ export function galleryUpdates(
 ): Map<string, GalleryTheme> {
   const out = new Map<string, GalleryTheme>();
   for (const theme of catalog ?? []) {
+    if (isBuiltinGalleryTheme(theme)) continue;
     const installed = installedCopy(theme, userThemes);
     if (installed && galleryStatus(theme, installed) === "update")
       out.set(installed.id, theme);
@@ -92,7 +94,9 @@ export function AvailableThemes({
   const { settings } = useSettings();
   const { catalog, unreachable, retry } = gallery;
   const shown = (catalog ? searchThemes(catalog, query) : []).filter(
-    (theme) => !installedCopy(theme, settings.userThemes),
+    (theme) =>
+      !isBuiltinGalleryTheme(theme) &&
+      !installedCopy(theme, settings.userThemes),
   );
   const message = unreachable ? (
     <GalleryUnreachable t={t} retry={retry} />

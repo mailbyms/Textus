@@ -2,6 +2,10 @@
 
 Code and artwork from other projects that ship inside Textus.
 
+## GitHub theme
+
+The built-in theme in `src/theme/github/` is a copy of the GitHub theme from [textus-themes](https://github.com/CatVinci-Studio/textus-themes). It follows [github-markdown-css](https://github.com/sindresorhus/github-markdown-css) by Sindre Sorhus and the [GitHub Primer primitives](https://github.com/primer/primitives), both MIT. Each stylesheet keeps the theme's original license and credit notice.
+
 ## Lucide icons
 
 The file-type icons in `src/ui/file-icons.tsx` are from [Lucide](https://lucide.dev) (lucide-static 0.460.0).

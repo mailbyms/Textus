@@ -1,6 +1,7 @@
 import { themeGallery } from "../platform/ipc";
 import type { GalleryTheme_Serialize as GalleryThemeAnswer } from "../platform/bindings/app";
 import type { UserThemeMeta } from "../prefs/SettingsContext";
+import { isBundledThemeId } from "./bundled-themes";
 import { saveUserTheme } from "./theme-import";
 
 /// The public theme gallery: what Settings lists, and installing a theme as a
@@ -10,6 +11,11 @@ import { saveUserTheme } from "./theme-import";
 export type GalleryTheme = GalleryThemeAnswer;
 
 export type GalleryStatus = "install" | "installed" | "update";
+
+/** A gallery entry whose theme ships with the app needs no Install row. */
+export function isBuiltinGalleryTheme(theme: GalleryTheme): boolean {
+  return isBundledThemeId(theme.id);
+}
 
 /** A theme as the UI's language shows it: the catalog's words for that
  *  language, or its base's, over the English. Traditional Chinese reads the

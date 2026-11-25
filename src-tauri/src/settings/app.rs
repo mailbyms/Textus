@@ -131,12 +131,19 @@ pub fn boot_script(app: &AppHandle, label: &str) -> String {
 /// than copied into every boot script.
 pub(crate) const MAX_BOOT_THEME_CSS: u64 = 2 * 1024 * 1024;
 
-/// The selected imported theme's stylesheets, as `{light, dark}` JSON (or
-/// `null` for a built-in theme).
+/// The selected theme's stylesheets, as `{light, dark}` JSON (or `null` for
+/// an attribute-only built-in theme). Bundled themes and imported ones both
+/// arrive here so the first frame uses the same CSS the frontend will apply.
 pub(crate) fn user_theme_css(app: &AppHandle, settings: &Value) -> Value {
     let Some(id) = settings.get("themeId").and_then(Value::as_str) else {
         return Value::Null;
     };
+    if id == "github" {
+        return json!({
+            "light": include_str!("../../../src/theme/github/light.css"),
+            "dark": include_str!("../../../src/theme/github/dark.css"),
+        });
+    }
     let Some(theme) = settings
         .get("userThemes")
         .and_then(Value::as_array)

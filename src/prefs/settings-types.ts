@@ -318,7 +318,7 @@ export const DEFAULT_SETTINGS: Settings = {
   docLetterSpacingBy: 1,
   shortcuts: DEFAULT_SHORTCUTS,
   commandShortcuts: {},
-  themeId: "default",
+  themeId: "github",
   userThemes: [],
   creations: [],
   newDocumentMode: "window",

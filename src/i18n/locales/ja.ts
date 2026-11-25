@@ -1440,6 +1440,7 @@ ${AI_NAME}への執筆の指示です。すべての文書に適用されます�
   themeNamePaper: "ペーパー",
   themeNameSlate: "スレート",
   themeNameForest: "フォレスト",
+  themeNameGithub: "GitHub",
   appearanceLabel: "外観",
   appearanceSystem: "システムに従う",
   appearanceLight: "ライト",

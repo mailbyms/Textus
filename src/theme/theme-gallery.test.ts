@@ -5,6 +5,7 @@ import {
   installGalleryTheme,
   localizedTheme,
   installedCopy,
+  isBuiltinGalleryTheme,
   isNewer,
   type GalleryTheme,
 } from "./theme-gallery";
@@ -61,6 +62,13 @@ describe("theme gallery", () => {
       ],
       ["themes/lumen/theme-dark.css"],
     ]);
+  });
+
+  it("recognises the theme that ships inside the app", () => {
+    expect(
+      isBuiltinGalleryTheme({ ...theme("2026-11-05T22:00:00Z"), id: "github" }),
+    ).toBe(true);
+    expect(isBuiltinGalleryTheme(theme("2026-11-05T22:00:00Z"))).toBe(false);
   });
 
   it("offers Install for a theme with no installed copy", () => {

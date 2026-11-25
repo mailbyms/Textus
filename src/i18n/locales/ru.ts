@@ -1505,6 +1505,7 @@ export default {
   themeNamePaper: "Бумага",
   themeNameSlate: "Грифель",
   themeNameForest: "Лес",
+  themeNameGithub: "GitHub",
   appearanceLabel: "Оформление",
   appearanceSystem: "Как в системе",
   appearanceLight: "Светлое",

@@ -15,6 +15,7 @@ import {
   type DocLetterSpacing,
 } from "../prefs/SettingsContext";
 import { BUILTIN_CONTENT_THEMES } from "./builtin-themes";
+import { bundledThemeCss } from "./bundled-themes";
 import { applyThemeChrome, clearThemeChrome } from "./theme-chrome";
 import { adaptTyporaCss, namedSystemFonts } from "./typora-compat";
 import { isIOSApp } from "../platform/capabilities";
@@ -228,10 +229,11 @@ export function useApplyAppearance(
       clearThemeChrome();
     }
 
+    const bundled = bundledThemeCss(settings.themeId);
     const builtin = BUILTIN_CONTENT_THEMES.find(
       (t) => t.id === settings.themeId,
     );
-    if (builtin) {
+    if (builtin && !bundled) {
       if (builtin.id === "default") root.removeAttribute("data-content-theme");
       else root.setAttribute("data-content-theme", builtin.id);
       clearInjectedStyle();
@@ -241,7 +243,7 @@ export function useApplyAppearance(
     const userTheme = settings.userThemes.find(
       (t) => t.id === settings.themeId,
     );
-    if (!userTheme) {
+    if (!bundled && !userTheme) {
       // Unknown or deleted theme (e.g. loaded from a stale settings blob) -
       // fall back to default rather than silently doing nothing.
       root.removeAttribute("data-content-theme");
@@ -252,22 +254,27 @@ export function useApplyAppearance(
     }
 
     root.removeAttribute("data-content-theme");
-    // Turns Textus's own content ornaments off: an imported theme should look
-    // the way it does in Typora.
+    // Turns Textus's own content ornaments off: a theme with its own
+    // stylesheet should look the way its author wrote it.
     root.setAttribute("data-user-theme", "");
     let cancelled = false;
     let revision = 0;
-    const theme = userTheme;
+    const themeId = settings.themeId;
+    const hasDark = bundled ? !!bundled.dark : !!userTheme?.hasDark;
 
     async function applyUserTheme() {
-      // A single-design import has no dark stylesheet, so it keeps its one
+      // A single-design theme has no dark stylesheet, so it keeps its one
       // look in either appearance rather than being half-applied.
       const request = ++revision;
       const variant =
-        isEffectiveDark(settings.theme) && theme.hasDark ? "dark" : "light";
+        isEffectiveDark(settings.theme) && hasDark ? "dark" : "light";
       try {
-        const stored = await themes.loadThemeCss(theme.id, variant);
-        // One imported before web fonts were embedded still has them.
+        const stored = bundled
+          ? variant === "dark"
+            ? bundled.dark
+            : bundled.light
+          : await themes.loadThemeCss(themeId, variant);
+        // One written before web fonts were embedded still carries them.
         const loaded = stored && (await withWebFonts(stored));
         if (cancelled || request !== revision) return;
         const css = loaded && withCurrentVariables(loaded);
@@ -286,10 +293,10 @@ export function useApplyAppearance(
         try {
           // A one-design theme is that design's page in both appearances, its chrome
           // derived as light: derived as dark, themes that pin dark text became unreadable.
-          chrome = applyThemeChrome(css ?? "", dark && theme.hasDark);
+          chrome = applyThemeChrome(css ?? "", dark && hasDark);
           // ...and the document's own dark-only colours (syntax tokens,
           // alert accents, mermaid) stand down on that light page.
-          if (dark && !theme.hasDark) root.setAttribute("data-light-page", "");
+          if (dark && !hasDark) root.setAttribute("data-light-page", "");
           else root.removeAttribute("data-light-page");
         } finally {
           // The user's own CSS stays after the theme and its chrome, whenever they
@@ -306,7 +313,7 @@ export function useApplyAppearance(
         }
         if (typeof chrome === "string")
           rememberThemeChrome({
-            id: theme.id,
+            id: themeId,
             dark,
             sourceLength: (css ?? "").length,
             css: chrome,

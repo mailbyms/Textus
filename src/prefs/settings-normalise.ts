@@ -95,10 +95,30 @@ export function guessLanguage(): Lang {
   return detectLang(typeof navigator === "undefined" ? "" : navigator.language);
 }
 
+/** The gallery's GitHub theme now ships with the app. A profile that had it
+ *  installed uses the built-in id instead; a manually imported theme called
+ *  GitHub is left alone. */
+function migrateBuiltinGithub(settings: Settings): Settings {
+  if (!Array.isArray(settings.userThemes)) return settings;
+  const copies = settings.userThemes.filter(
+    (theme) => theme.gallery?.id === "github",
+  );
+  if (!copies.length) return settings;
+  return {
+    ...settings,
+    ...(copies.some((theme) => theme.id === settings.themeId)
+      ? { themeId: "github" }
+      : {}),
+    userThemes: settings.userThemes.filter(
+      (theme) => theme.gallery?.id !== "github",
+    ),
+  };
+}
+
 /** Stored settings -> a complete, valid `Settings`. Nothing stored at all is
  *  a new installation, which starts in the OS's language. */
 export function normaliseSettings(parsed: Raw | null): Settings {
-  const settings = readSettings(parsed);
+  const settings = migrateBuiltinGithub(readSettings(parsed));
   return hasTextusAi ? settings : { ...settings, textusAi: false };
 }
 
