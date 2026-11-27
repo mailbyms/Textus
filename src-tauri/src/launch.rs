@@ -3,6 +3,11 @@
 
 use super::*;
 
+#[cfg(desktop)]
+mod routes;
+#[cfg(desktop)]
+use routes::{route_open_path, OpenRoute, Session};
+
 /// Files handed to the app from the OS queue here, in the windows they open
 /// in; each window drains one on mount. A queue, not an event: the request
 /// usually arrives before any listener.
@@ -89,10 +94,62 @@ pub(crate) fn queue_paths_to_open(app: &tauri::AppHandle, paths: Vec<String>) {
         return;
     }
 
-    // "window" mode (default): one queued file rides the initial window while
-    // launching; everything else gets a window of its own.
-    let count = paths.len();
-    queue_pending(app, paths);
+    // "window" mode (default): a file already open in another window comes to
+    // the front there instead of opening a second window. The registry is what
+    // every window reports for session restore; it is live and cleared on
+    // Destroyed. Take both snapshots before touching the queue, so no lock is
+    // held while queue_pending or a window is built.
+    let snapshot: Session = app
+        .try_state::<SessionTabsState>()
+        .map(|state| state.0.lock().unwrap().clone())
+        .unwrap_or_default();
+    let in_flight: Vec<String> = app
+        .state::<PendingOpenPaths>()
+        .0
+        .lock()
+        .unwrap()
+        .iter()
+        .flatten()
+        .cloned()
+        .collect();
+
+    let mut to_open: Vec<String> = Vec::new();
+    for path in &paths {
+        match route_open_path(path, &snapshot, &in_flight, &to_open) {
+            OpenRoute::Skip => {}
+            OpenRoute::NewWindow(path) => to_open.push(path),
+            OpenRoute::Focus {
+                label,
+                path: registered,
+            } => {
+                // A stale registry entry must not swallow the open.
+                let alive = app.get_webview_window(&label).is_some();
+                if !alive {
+                    to_open.push(path.clone());
+                    continue;
+                }
+                let _ = app.emit_to(
+                    EventTarget::webview_window(&label),
+                    "open-paths-as-tabs",
+                    vec![registered],
+                );
+                // The open came from outside, so that window is probably
+                // behind the file manager that asked for it.
+                if let Some(window) = app.get_webview_window(&label) {
+                    let _ = window.unminimize();
+                    let _ = window.set_focus();
+                }
+            }
+        }
+    }
+    if to_open.is_empty() {
+        return;
+    }
+
+    // One queued file rides the initial window while launching; everything
+    // else gets a window of its own.
+    let count = to_open.len();
+    queue_pending(app, to_open);
     let extra_windows = if ui_ready { count } else { count - 1 };
     for _ in 0..extra_windows {
         let _ = crate::editor_windows::open_new_window(app);

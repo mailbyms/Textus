@@ -65,6 +65,15 @@ document, a folder opens in the sidebar), files the OS opens in a running
 app (`useOpenPathsPush`, the `open-paths-as-tabs` event), and followed
 links and project-bar entries, which always get a tab of their own.
 
+Before a file from outside becomes a new window,
+`src-tauri/src/launch.rs` checks it against the paths every window reports
+for session restore (`SessionTabsState`). A path already open in another
+window is sent to that window's `open-paths-as-tabs` listener and the window
+is focused, so the four rules above bring its tab forward instead of opening
+a second copy. Paths queued for a window that has not mounted yet count as
+open too. ⌘/Ctrl-click in the file tree still asks for a new window every
+time, and session restore keeps the window layout it was given.
+
 ### At launch
 
 `src/document/startup-restore.ts` decides what fills a new window's blank

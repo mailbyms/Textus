@@ -384,8 +384,10 @@ export function useFileOpening(opts: {
 }
 
 /**
- * OS opens on an already-running instance in tab mode, pushed to exactly
- * this window; a catch-all listener would open it in every window.
+ * An OS open routed to this window: tab mode hands it the whole batch, and
+ * window mode sends a path this window already has so its tab comes to the
+ * front. Addressed to one window; a catch-all listener would open the file in
+ * every window.
  */
 export function useOpenPathsPush(
   openPathInTab: (path: string, open?: OpenOptions) => Promise<void>,
